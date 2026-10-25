@@ -663,6 +663,9 @@ $('#importFile').addEventListener('change', async ev => {
 if (S.active && S.active.runSince) keepAwake();
 render();
 
+// ask the browser not to evict our data when the phone is low on space
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
