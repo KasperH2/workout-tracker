@@ -43,6 +43,13 @@
   ul.ex li[data-act]:active { background: var(--card2); }  ul.ex .reps { min-width: 44px; text-align: center; font-weight: 800; font-size: 18px; background: var(--card2); border-radius: 10px; padding: 4px 6px; }
   ul.ex .name { flex: 1; }
   ul.ex .kg { color: var(--muted); font-variant-numeric: tabular-nums; }
+  /* looks like the plain kg text until tapped */
+  .kgin { display: flex; align-items: center; gap: 3px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .kgin input { width: 3em; font: inherit; text-align: right; padding: 2px 3px; border-radius: 8px;
+    border: 1px solid transparent; background: transparent; color: var(--muted); outline: none; }
+  .kgin input::placeholder { color: var(--muted); }
+  .kgin input:focus { background: var(--card2); border-color: var(--accent); color: var(--text); text-align: center; }
+  .kgin input.miss { color: var(--warn); }
   .up { color: var(--good); font-size: 12px; font-weight: 700; margin-left: 6px; white-space: nowrap; }
   .sub { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-top: 16px; }
   .hint { margin-top: 14px; background: rgba(62,207,142,.1); border: 1px solid rgba(62,207,142,.3); color: var(--text); border-radius: 12px; padding: 10px 12px; font-size: 14px; }
@@ -61,20 +68,21 @@
   .ring .track { stroke: var(--card2); }
   .ring .bar { stroke: var(--pc); stroke-linecap: round; transition: stroke-dashoffset .25s linear; }
   .ring-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .ring-text .eyebrow { font-size: 11px; margin-bottom: 2px; }
   #t-time { font-size: 60px; line-height: 1; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -1px; }
   #t-time.paused { opacity: .45; }
   #t-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
-  .round { font-size: 15px; font-weight: 700; margin-top: 6px; }
-  .dots { display: flex; gap: 6px; margin-top: 5px; }
+  .dots { display: flex; gap: 6px; margin-top: 8px; }
   .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--card2); border: 2px solid var(--line); }
   .dot.done { background: var(--good); border-color: var(--good); }
   .dot.cur { border-color: var(--pc); }
   .tools { position: absolute; right: 10px; bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .tools.left { right: auto; left: 10px; }
+  .ttotal { position: absolute; top: 12px; left: 14px; display: flex; align-items: center; gap: 4px;
+    font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .ttotal svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
   .ibr { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--card2);
     font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; padding: 0; }
   .ibr svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .allDone { color: var(--good); }
 
   ul.ex input.reps { width: 56px; min-width: 56px; font: inherit; font-weight: 800; font-size: 18px; color: var(--text);
     border: 1px solid var(--line); outline: none; }
@@ -172,7 +180,7 @@
 
 <script>
 const KEY = 'wt-state-v1';
-const ROUND_MS = 6 * 60 * 1000;
+const roundMs = () => (S.roundMin || 6) * 60 * 1000;
 const TARGET = 4;
 const MAIN = ['p1', 'p2'];
 
@@ -252,10 +260,15 @@ function toast(msg) {
 
 // ---------- timer ----------
 const elapsed = a => a.acc + (a.runSince ? Date.now() - a.runSince : 0);
+// total workout time is plain wall-clock time since the first tap on the timer:
+// pausing and the +/- buttons don't affect it
+// (workouts started before this existed have no firstStart field: fall back to startedAt)
+const firstStart = a => 'firstStart' in a ? a.firstStart : a.startedAt;
+const totalTime = a => firstStart(a) ? Date.now() - firstStart(a) : 0;
 function setElapsed(a, ms) {
   a.acc = Math.max(0, ms);
   if (a.runSince) a.runSince = Date.now();
-  a.lastDone = Math.floor(a.acc / ROUND_MS);
+  a.lastDone = Math.floor(a.acc / roundMs());
 }
 
 let audio;
@@ -296,26 +309,24 @@ function tick() {
   const a = S.active;
   if (!a) return;
   const e = elapsed(a);
-  const done = Math.floor(e / ROUND_MS);
-  const within = e % ROUND_MS;
+  const done = Math.floor(e / roundMs());
+  const within = e % roundMs();
   if (done > (a.lastDone || 0)) { a.lastDone = done; save(); roundAlert(done); }
-  const secLeft = Math.ceil((ROUND_MS - within) / 1000);
+  const secLeft = Math.ceil((roundMs() - within) / 1000);
   if (a.runSince && secLeft <= 3 && secLeft !== lastCountdown) { lastCountdown = secLeft; beep(660, 0.1); }
   if (secLeft > 3) lastCountdown = null;
 
   const time = $('#t-time');
   if (!time) return;
   time.textContent = fmt(within);
+  $('#t-total').textContent = fmt(totalTime(a));
   time.classList.toggle('paused', !a.runSince);
   const bar = $('#t-bar'), C = 2 * Math.PI * 45;
   bar.style.strokeDasharray = C;
-  bar.style.strokeDashoffset = C * (1 - within / ROUND_MS);
-  $('#t-round').innerHTML = done >= TARGET
-    ? `<span class="allDone">${TARGET}/${TARGET} done ✓</span>`
-    : `Round ${done + 1}/${TARGET}`;
+  bar.style.strokeDashoffset = C * (1 - within / roundMs());
   $('#t-dots').innerHTML = Array.from({ length: TARGET }, (_, i) =>
     `<div class="dot ${i < done ? 'done' : i === done ? 'cur' : ''}"></div>`).join('');
-  $('#t-sub').textContent = a.runSince ? 'of 6:00' : 'Paused';
+  $('#t-sub').textContent = a.runSince ? '' : firstStart(a) ? 'Paused' : 'Tap to start';
 }
 setInterval(tick, 250);
 
@@ -340,6 +351,13 @@ function keepNext(p, change) {
 }
 
 // ---------- render: today ----------
+// kg as text, or during a workout an input for the kg actually used
+function kgCell(e, active) {
+  if (!active) return `<span class="kg">${kgTxt(e.kg)}</span>`;
+  const v = (active.kg || {})[e.id] ?? (e.kg || '');
+  return `<span class="kgin"><input type="number" inputmode="decimal" min="0" step="0.5" placeholder="–" data-kgdone="${e.id}" data-target="${e.kg || 0}" value="${esc(v)}"${v !== '' && +v < (e.kg || 0) ? ' class="miss"' : ''} aria-label="kg used">kg</span>`;
+}
+
 // pid given → rows are tappable to pick which exercise gets +1 rep after the workout.
 // active given → rep boxes become inputs for the reps actually done.
 function exList(p, pid, active) {
@@ -351,14 +369,14 @@ function exList(p, pid, active) {
       const v = (active.done || {})[e.id] ?? e.reps;
       box = `<input class="reps${+v < e.reps ? ' miss' : ''}" type="number" inputmode="numeric" min="0" data-done="${e.id}" data-target="${e.reps}" value="${esc(v)}" aria-label="Reps done">`;
     }
-    return `<li${pid ? ` data-act="setNext" data-p="${pid}" data-i="${i}"` : ''}>${box}<span class="name">${esc(e.name)}${next ? '<span class="up">↑ +1 next</span>' : ''}</span><span class="kg">${kgTxt(e.kg)}</span></li>`;
+    return `<li${pid ? ` data-act="setNext" data-p="${pid}" data-i="${i}"` : ''}>${box}<span class="name">${esc(e.name)}${next ? '<span class="up">↑ +1 next</span>' : ''}</span>${kgCell(e, active)}</li>`;
   }).join('') + `</ul>`;
   if (pid && !active) h += `<div class="meta">Tap an exercise to choose which one goes up after the workout.</div>`;  if (p.buyout.length) {
     h += `<div class="sub">Buy-out</div><ul class="ex">` + p.buyout.map(b => {
       const box = active
         ? `<input class="reps" type="number" inputmode="numeric" min="0" placeholder="max" data-bo="${b.id}" value="${esc(active.buyout[b.id] ?? '')}">`
         : `<span class="reps">max</span>`;
-      return `<li>${box}<span class="name">${esc(b.name)}</span><span class="kg">${kgTxt(b.kg)}</span></li>`;
+      return `<li>${box}<span class="name">${esc(b.name)}</span>${kgCell(b, active)}</li>`;
     }).join('') + `</ul>`;
   }
   return h;
@@ -374,7 +392,7 @@ function renderToday() {
     el.innerHTML = `
       <section class="card" style="--pc:var(--${id})">
         <div class="eyebrow">Up next</div>
-        <h1>${esc(p.name)} <span class="tag">E6MOM × ${TARGET}</span></h1>
+        <h1>${esc(p.name)} <span class="tag">E${S.roundMin || 6}MOM × ${TARGET}</span></h1>
         <div class="muted"><small>${last ? `Last workout: ${esc(last.name)} · ${daysAgo(last.date)}` : 'No workouts logged yet'}</small></div>
         ${exList(p, id)}
         <button class="btn primary big" data-act="start" data-p="${id}">Start ${esc(p.name)}</button>
@@ -394,16 +412,19 @@ function renderToday() {
   const p = S.programs[a.program];
   el.innerHTML = `
     <section class="card tcard" style="--pc:var(--${a.program})">
+      <div class="ttotal" aria-label="Total workout time"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg><span id="t-total">0:00</span></div>
       <div class="twrap">
         <div class="ring" data-act="pause" role="button" aria-label="Tap to pause or resume">
           <svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="45"/><circle id="t-bar" class="bar" cx="50" cy="50" r="45"/></svg>
           <div class="ring-text">
-            <div class="eyebrow">${esc(p.name)}</div>
             <div id="t-time">0:00</div>
-            <div id="t-sub">of 6:00</div>
-            <div id="t-round" class="round"></div>
+            <div id="t-sub"></div>
             <div id="t-dots" class="dots"></div>
           </div>
+        </div>
+        <div class="tools left">
+          <button class="ibr" data-act="nudge" data-d="15000" aria-label="Add 15 seconds">+15</button>
+          <button class="ibr" data-act="nudge" data-d="-15000" aria-label="Remove 15 seconds">−15</button>
         </div>
         <div class="tools">
           <button class="ibr" data-act="roundPlus" aria-label="Next round">+1</button>
@@ -506,13 +527,12 @@ function trend(item, logged) {
   const a = pts[0], z = pts[pts.length - 1];
   const val = x => `${x.reps} reps${x.kg ? ` × ${+x.kg} kg` : ''}`;
   const dReps = z.reps - a.reps, dKg = Math.round(((z.kg || 0) - (a.kg || 0)) * 100) / 100;
-  const sign = v => (v > 0 ? '+' : '') + v;
-  const parts = [dReps && `${sign(dReps)} rep${Math.abs(dReps) === 1 ? '' : 's'}`,dKg && `${sign(dKg)} kg`].filter(Boolean);
-  const cls = dReps < 0 || dKg < 0 ? (dReps > 0 || dKg > 0 ? '' : ' neg') : parts.length ? '' : ' zero';
+  const dir = direction(dKg, dReps);
+  const cls = dir > 0 ? '' : dir < 0 ? ' neg' : ' zero';
   return `<div class="trend">
     <div class="tn">${name}
       <div class="tv">${val(a)} → <b>${val(z)}</b></div>
-      <div class="dl${cls}">${parts.length ? parts.join(' · ') : 'no change'}</div>
+      <div class="dl${cls}">${changeText(dKg, dReps) || 'no change'}</div>
     </div>
     ${sparkline(pts.map(x => x.reps))}
   </div>`;
@@ -552,11 +572,16 @@ function changeBadge(h, idx) {
   const sum = (s, f) => s.exercises.reduce((t, e) => t + (+e[f] || 0), 0);
   const dReps = sum(h, 'reps') - sum(prev, 'reps');
   const dKg = Math.round((sum(h, 'kg') - sum(prev, 'kg')) * 100) / 100;
-  if (dReps > 0 || (dReps === 0 && dKg > 0))
-    return `<span class="chg up">${dReps ? `+${dReps} rep${dReps === 1 ? '' : 's'}` : `+${dKg} kg`}</span>`;
-  if (dReps < 0 || dKg < 0)
-    return `<span class="chg down">${dReps ? `${dReps} rep${dReps === -1 ? '' : 's'}` : `${dKg} kg`}</span>`;
-  return `<span class="chg same">same</span>`;
+  const dir = direction(dKg, dReps);
+  if (!dir) return `<span class="chg same">same</span>`;
+  return `<span class="chg ${dir > 0 ? 'up' : 'down'}">${changeText(dKg, dReps)}</span>`;
+}
+
+// kg decides first; reps only count when the kg is unchanged. 1 = up, -1 = down, 0 = same
+const direction = (dKg, dReps) => Math.sign(dKg) || Math.sign(dReps);
+function changeText(dKg, dReps) {
+  const sign = v => (v > 0 ? '+' : '') + v;
+  return [dKg && `${sign(dKg)} kg`, dReps && `${sign(dReps)} rep${Math.abs(dReps) === 1 ? '' : 's'}`].filter(Boolean).join(' · ');
 }
 
 function renderStats() {
@@ -564,10 +589,12 @@ function renderStats() {
   const within = d => S.history.filter(h => now - new Date(h.date) < d * 86400000).length;
   const hist = S.history.map((h, idx) => {
     const ed = editHist === h.id;
-    const heInput = (k, i, v) => `<input type="number" inputmode="numeric" min="0" data-he="${h.id}" data-k="${k}" data-i="${i}" value="${v ?? ''}" aria-label="Reps done">`;
+    const heInput = (k, i, f, v) => `<input type="number" inputmode="${f === 'kg' ? 'decimal' : 'numeric'}" min="0" placeholder="${f === 'kg' ? 'kg' : 'reps'}" data-he="${h.id}" data-k="${k}" data-i="${i}" data-f="${f}" value="${v ?? ''}" aria-label="${f === 'kg' ? 'kg used' : 'Reps done'}">`;
+    const heRow = (k, x, i, label) => `<div class="he">${heInput(k, i, 'reps', x.reps)}${heInput(k, i, 'kg', x.kg || '')}<span>${label}</span></div>`;
     const body = ed
-      ? h.exercises.map((e, i) => `<div class="he">${heInput('exercises', i, e.reps)}<span>${esc(e.name)}${e.target ? ` <small>(goal ${e.target})</small>` : ''}</span></div>`).join('') +
-        (h.buyout || []).map((b, i) => `<div class="he">${heInput('buyout', i, b.reps)}<span>${esc(b.name)} <small>(buy-out)</small></span></div>`).join('')
+      ? `<div class="meta">reps · kg</div>` +
+        h.exercises.map((e, i) => heRow('exercises', e, i, `${esc(e.name)}${e.target ? ` <small>(goal ${e.target})</small>` : ''}`)).join('') +
+        (h.buyout || []).map((b, i) => heRow('buyout', b, i, `${esc(b.name)} <small>(buy-out)</small>`)).join('')
       : `${h.rounds} rounds · ${fmt(h.durationMs)} min
         ${h.progressed ? `<br>↑ ${esc(h.progressed.name)}: ${h.progressed.from} → ${h.progressed.to} reps` : ''}
         <br>${h.exercises.map(e => {
@@ -601,6 +628,15 @@ function renderStats() {
     ${['p1', 'p2', 'p3'].map(programCard).join('')}
     <section class="card"><h2>History</h2>${hist || '<div class="muted">No workouts yet.</div>'}</section>
     <section class="card">
+      <h2>Settings</h2>
+      <div class="row">
+        <span>Round time</span>
+        <div class="stp"><button data-act="roundMin" data-d="-0.5" aria-label="decrease">−</button>
+          <span>${S.roundMin || 6}<small>min</small></span>
+          <button data-act="roundMin" data-d="0.5" aria-label="increase">+</button></div>
+      </div>
+    </section>
+    <section class="card">
       <h2>Backup</h2>
       <div class="meta" style="margin-top:0">Your data lives only on this phone. Export now and then to keep a copy.</div>
       <div class="row" style="margin-top:10px">
@@ -619,6 +655,13 @@ function render() {
   if (tab === 'today') renderToday(); else renderStats();
 }
 
+function kgUsed(a, x) {
+  const raw = (a.kg || {})[x.id];
+  if (raw === undefined) return x.kg;
+  const v = parseFloat(String(raw).replace(',', '.'));
+  return isNaN(v) ? 0 : v;
+}
+
 // ---------- actions ----------
 const actions = {
   tab() {
@@ -629,32 +672,34 @@ const actions = {
   start(d, btn, ev) {
     ev.preventDefault(); // don't toggle <details> when the button sits in a summary
     ensureAudio();
-    S.active = { program: d.p, startedAt: Date.now(), acc: 0, runSince: Date.now(), lastDone: 0, buyout: {}, done: {} };
+    S.active = { program: d.p, startedAt: Date.now(), acc: 0, runSince: null, firstStart: null, lastDone: 0, buyout: {}, done: {} };
     save(); keepAwake(); render();
   },
   pause() {
     const a = S.active;
     if (a.runSince) { a.acc += Date.now() - a.runSince; a.runSince = null; releaseAwake(); }
-    else { ensureAudio(); a.runSince = Date.now(); keepAwake(); }
+    else { ensureAudio(); a.runSince = Date.now(); a.firstStart = a.firstStart || a.runSince; keepAwake(); }
     save(); tick();
   },
-  roundPlus() { setElapsed(S.active, elapsed(S.active) + ROUND_MS); save(); tick(); },
-  roundMinus() { setElapsed(S.active, elapsed(S.active) - ROUND_MS); save(); tick(); },
-  restartRound() { const e = elapsed(S.active); setElapsed(S.active, e - e % ROUND_MS); save(); tick(); },
+  // "+15" counts the clock forward (less time left in the round), "−15" gives 15 s back
+  nudge(d) { setElapsed(S.active, elapsed(S.active) + +d.d); save(); tick(); },
+  roundPlus() { setElapsed(S.active, elapsed(S.active) + roundMs()); save(); tick(); },
+  roundMinus() { setElapsed(S.active, elapsed(S.active) - roundMs()); save(); tick(); },
+  restartRound() { const e = elapsed(S.active); setElapsed(S.active, e - e % roundMs()); save(); tick(); },
   finish() {
     const a = S.active, p = S.programs[a.program];
-    const e = elapsed(a), rounds = Math.floor(e / ROUND_MS);
+    const e = elapsed(a), rounds = Math.floor(e / roundMs());
     if (rounds < TARGET && !confirm(`Only ${rounds} of ${TARGET} rounds completed. Save anyway?`)) return;
     const session = {
-      id: uid(), date: new Date(a.startedAt).toISOString(), program: a.program, name: p.name,
-      rounds, durationMs: e,
+      id: uid(), date: new Date(firstStart(a) || a.startedAt).toISOString(), program: a.program, name: p.name,
+      rounds, durationMs: totalTime(a),
       exercises: p.exercises.map(x => {
         const v = parseInt((a.done || {})[x.id], 10);
-        return { id: x.id, name: x.name, reps: isNaN(v) ? x.reps : v, target: x.reps, kg: x.kg };
+        return { id: x.id, name: x.name, reps: isNaN(v) ? x.reps : v, target: x.reps, kg: kgUsed(a, x) };
       }),
       buyout: p.buyout.map(b => {
         const v = parseInt(a.buyout[b.id], 10);
-        return { id: b.id, name: b.name, kg: b.kg, reps: isNaN(v) ? null : v };
+        return { id: b.id, name: b.name, kg: kgUsed(a, b), reps: isNaN(v) ? null : v };
       }),
     };
     // the exercise due for +1 only goes up if all its reps were done; otherwise it gets another try next time
@@ -710,6 +755,11 @@ const actions = {
     save(); render();
   },
   progP(d) { progP = d.p; render(); },
+  roundMin(d) {
+    S.roundMin = Math.min(30, Math.max(0.5, (S.roundMin || 6) + parseFloat(d.d)));
+    if (S.active) S.active.lastDone = Math.floor(elapsed(S.active) / roundMs()); // no false round alarm
+    save(); render();
+  },
   editHist(d) { editHist = editHist === d.id ? null : d.id; openHist = d.id; render(); },
   del(d) {
     if (!confirm('Delete this workout from history? (Reps/kg are not changed.)')) return;
@@ -741,9 +791,20 @@ document.addEventListener('input', ev => {
     ev.target.classList.toggle('miss', ev.target.value !== '' && +ev.target.value < +t.target);
     save();
   }
+  if (t.kgdone && S.active) {
+    (S.active.kg = S.active.kg || {})[t.kgdone] = ev.target.value;
+    ev.target.classList.toggle('miss', ev.target.value !== '' && +ev.target.value < +t.target);
+    save();
+  }
   if (t.he) {
-    const v = parseInt(ev.target.value, 10);
-    S.history.find(h => h.id === t.he)[t.k][+t.i].reps = isNaN(v) ? null : v;
+    const item = S.history.find(h => h.id === t.he)[t.k][+t.i];
+    if (t.f === 'kg') {
+      const v = parseFloat(ev.target.value.replace(',', '.'));
+      item.kg = isNaN(v) ? 0 : v;
+    } else {
+      const v = parseInt(ev.target.value, 10);
+      item.reps = isNaN(v) ? null : v;
+    }
     save();
   }
   if (t.rn) { S.programs[t.rn][t.l][+t.i].name = ev.target.value; save(); }
