@@ -11,13 +11,13 @@
 <style>
   :root {
     --bg: #0f1216; --card: #181c22; --card2: #222831; --text: #e9edf2; --muted: #8b95a3;
-    --line: #2a313b; --accent: #4f8cff; --good: #3ecf8e; --danger: #ff5d5d;
+    --line: #2a313b; --accent: #4f8cff; --good: #3ecf8e; --danger: #ff5d5d; --warn: #f5c542;
     --p1: #4f8cff; --p2: #f5a524; --p3: #b76cff;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; background: var(--bg); color: var(--text);
     font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  main { max-width: 560px; margin: 0 auto; padding: 16px 16px calc(96px + env(safe-area-inset-bottom)); }
+  main { max-width: 560px; margin: 0 auto; padding: 16px 16px 8px; }
   h1 { font-size: 28px; margin: 2px 0 4px; }
   h2 { font-size: 17px; margin: 0 0 10px; }
   button { font: inherit; color: inherit; cursor: pointer; }
@@ -27,7 +27,6 @@
   .tag { font-size: 12px; background: var(--card2); color: var(--muted); padding: 3px 8px; border-radius: 99px; vertical-align: middle; font-weight: 600; }
 
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px; margin-bottom: 14px; }
-  .hero { border-top: 4px solid var(--pc); }
   .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 
   .btn { border: 1px solid var(--line); background: var(--card2); border-radius: 14px; padding: 12px 16px; font-weight: 600; }
@@ -54,29 +53,38 @@
   details[open] .chev { transform: rotate(90deg); }
 
   /* timer */
-  .timer-card { text-align: center; border-top: 4px solid var(--pc); }
-  .ring { position: relative; width: min(72vw, 280px); aspect-ratio: 1; margin: 12px auto 6px; }
+  .tcard { position: relative; }
+  .twrap { display: flex; justify-content: center; }
+  .ring { position: relative; width: min(60vw, 250px); aspect-ratio: 1; flex: none; cursor: pointer; user-select: none; }
   .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
   .ring circle { fill: none; stroke-width: 10; }
   .ring .track { stroke: var(--card2); }
   .ring .bar { stroke: var(--pc); stroke-linecap: round; transition: stroke-dashoffset .25s linear; }
   .ring-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  #t-time { font-size: 64px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -1px; }
+  .ring-text .eyebrow { font-size: 11px; margin-bottom: 2px; }
+  #t-time { font-size: 60px; line-height: 1; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -1px; }
   #t-time.paused { opacity: .45; }
-  .round { font-size: 22px; font-weight: 700; margin-top: 4px; }
-  .dots { display: flex; justify-content: center; gap: 10px; margin: 12px 0 16px; }
-  .dot { width: 16px; height: 16px; border-radius: 50%; background: var(--card2); border: 2px solid var(--line); }
+  #t-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .round { font-size: 15px; font-weight: 700; margin-top: 6px; }
+  .dots { display: flex; gap: 6px; margin-top: 5px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--card2); border: 2px solid var(--line); }
   .dot.done { background: var(--good); border-color: var(--good); }
   .dot.cur { border-color: var(--pc); }
-  .controls { display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: 8px; }
-  .controls .btn { padding: 14px 6px; }
+  .tools { position: absolute; right: 10px; bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .ibr { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--card2);
+    font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; padding: 0; }
+  .ibr svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .allDone { color: var(--good); }
 
-  .bo { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
-  .bo:last-child { border-bottom: 0; }
-  .bo .name { flex: 1; }
-  .bo input { width: 84px; font: inherit; font-size: 18px; text-align: center; padding: 10px; border-radius: 12px;
-    border: 1px solid var(--line); background: var(--card2); color: var(--text); }
+  ul.ex input.reps { width: 56px; min-width: 56px; font: inherit; font-weight: 800; font-size: 18px; color: var(--text);
+    border: 1px solid var(--line); outline: none; }
+  ul.ex input.reps:focus { border-color: var(--accent); }
+  ul.ex input.reps.miss { border-color: var(--warn); color: var(--warn); }
+  ul.ex input.reps::placeholder { color: var(--text); opacity: 1; }
+  /* hide number spinners so the value stays centered */
+  input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 
   /* stats */
   .stats3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
@@ -102,6 +110,11 @@
   .stp small { color: var(--muted); font-weight: 500; margin-left: 3px; }
   .meta { font-size: 13px; color: var(--muted); margin-top: 6px; }
 
+  .nmrow { display: flex; gap: 6px; margin-bottom: 8px; }
+  .nmrow .nm { margin-bottom: 0; flex: 1; min-width: 0; }
+  .ib { width: 40px; flex: none; border: 1px solid var(--line); background: var(--card2); border-radius: 10px; font-size: 16px; }
+  .ib:disabled { opacity: .3; }
+  .ib.del { color: var(--danger); }
   .nm { width: 100%; font: inherit; font-weight: 600; padding: 9px 12px; margin-bottom: 8px; border-radius: 10px;
     border: 1px solid var(--accent); background: var(--card2); color: var(--text); }
   .segs { display: flex; gap: 6px; margin-bottom: 12px; }
@@ -117,7 +130,7 @@
   .trend .tv { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
   .trend .tv b { color: var(--text); }
   .trend .dl { font-size: 13px; font-weight: 700; color: var(--good); }
-  .trend .dl.neg { color: var(--danger); }
+  .trend .dl.neg { color: var(--warn); }
   .trend .dl.zero { color: var(--muted); }
   .trend svg { width: 64px; height: 28px; flex: none; }
   .trend polyline { fill: none; stroke: var(--pc); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
@@ -127,15 +140,23 @@
   .hist .pill { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }
   .hist .body { font-size: 14px; color: var(--muted); padding: 8px 0 0 18px; }
   .hist .del { background: none; border: 0; color: var(--danger); padding: 8px 0 0 18px; font-size: 14px; }
+  .hist .edit { background: none; border: 0; color: var(--accent); padding: 8px 0 0 18px; font-size: 14px; font-weight: 600; }
+  .hist summary { display: flex; align-items: center; }
+  .hist summary .when { flex: 1; min-width: 0; }
+  .chg { font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 99px; white-space: nowrap; }
+  .chg.up { color: var(--good); background: rgba(62,207,142,.14); }
+  .chg.same { color: var(--muted); background: var(--card2); }
+  .chg.down { color: var(--warn); background: rgba(245,197,66,.14); }
+  .hist .miss { color: var(--warn); }
+  .he { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
+  .he input { width: 64px; font: inherit; text-align: center; padding: 6px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--card2); color: var(--text); }
 
-  .tabs { position: fixed; left: 0; right: 0; bottom: 0; display: flex; background: rgba(15,18,22,.96);
-    border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom); backdrop-filter: blur(8px); }
-  .tabs button { flex: 1; background: none; border: 0; color: var(--muted); padding: 10px 0 12px; font-size: 13px; font-weight: 600;
-    display: flex; flex-direction: column; align-items: center; gap: 3px; }
-  .tabs button.on { color: var(--accent); }
-  .tabs svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .switch { display: flex; align-items: center; gap: 8px; margin: 0 auto calc(24px + env(safe-area-inset-bottom));
+    padding: 11px 22px; border-radius: 99px; font-weight: 700; border: 1px solid var(--line); background: var(--card2); }
+  .switch svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-  #toast { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(20px);
+  #toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(20px);
     background: var(--text); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 600; opacity: 0;
     transition: .25s; pointer-events: none; max-width: calc(100% - 32px); text-align: center; }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -145,14 +166,7 @@
 <main id="view-today"></main>
 <main id="view-stats" hidden></main>
 
-<nav class="tabs">
-  <button data-act="tab" data-t="today">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>Today
-  </button>
-  <button data-act="tab" data-t="stats">
-    <svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Stats
-  </button>
-</nav>
+<button class="switch" id="switch" data-act="tab"></button>
 <div id="toast"></div>
 <input type="file" id="importFile" accept="application/json,.json" hidden>
 
@@ -167,6 +181,7 @@ const ex = (name, reps, kg = 0) => ({ id: uid(), name, reps, kg });
 
 function defaultState() {
   return {
+    v: 2,
     nextMain: 'p1',
     programs: {
       p1: { name: 'Program 1', nextUp: 0,
@@ -176,7 +191,7 @@ function defaultState() {
         exercises: [ex('Deadlift', 12, 50), ex('Pull ups', 7), ex('Ab roll out', 12), ex('Back pull', 16), ex('Crunches', 16)],
         buyout: [ex('Crunches', 0)] },
       p3: { name: 'Program 3', nextUp: 0,
-        exercises: [ex('Calf raises', 16, 15), ex('Shoulder raises', 12, 22.5), ex('Calf raises, 1 foot', 16, 15), ex('Shoulder press', 12, 15)],
+        exercises: [ex('Calf raises', 16, 15), ex('Shoulder raises', 12, 22.5), ex('Calf raises, 1 foot', 16, 15), ex('Shoulder press', 12, 15), ex('Placeholder', 12)],
         buyout: [] },
     },
     history: [],
@@ -187,9 +202,13 @@ function defaultState() {
 function load() {
   try {
     const s = JSON.parse(localStorage.getItem(KEY));
-    if (s && s.programs) return s;
+    if (s && s.programs) return migrate(s);
   } catch (e) {}
   return defaultState();
+}
+function migrate(s) {
+  if ((s.v || 1) < 2) { s.programs.p3.exercises.push(ex('Placeholder', 12)); s.v = 2; }
+  return s;
 }
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
@@ -211,6 +230,7 @@ const dateShort = iso => new Date(iso).toLocaleDateString(undefined, { day: 'num
 
 let editing = null;                          // program id whose names are being edited
 let progP = 'p1', progFrom = '', progTo = ''; // progress view filters
+let editHist = null, openHist = null;         // history entry being edited / kept open
 
 function daysAgo(iso) {
   const a = new Date(iso); a.setHours(0, 0, 0, 0);
@@ -291,11 +311,11 @@ function tick() {
   bar.style.strokeDasharray = C;
   bar.style.strokeDashoffset = C * (1 - within / ROUND_MS);
   $('#t-round').innerHTML = done >= TARGET
-    ? `<span class="allDone">${TARGET} of ${TARGET} done ✓</span>`
-    : `Round ${done + 1} of ${TARGET}`;
+    ? `<span class="allDone">${TARGET}/${TARGET} done ✓</span>`
+    : `Round ${done + 1}/${TARGET}`;
   $('#t-dots').innerHTML = Array.from({ length: TARGET }, (_, i) =>
     `<div class="dot ${i < done ? 'done' : i === done ? 'cur' : ''}"></div>`).join('');
-  $('#t-pause').textContent = a.runSince ? 'Pause' : 'Resume';
+  $('#t-sub').textContent = a.runSince ? 'of 6:00' : 'Paused';
 }
 setInterval(tick, 250);
 
@@ -311,20 +331,35 @@ function progress(p) {
   return { name: e.name, from, to: e.reps };
 }
 
+// run a change to a program's exercise list while keeping "+1 next" on the same exercise
+function keepNext(p, change) {
+  const cur = p.exercises[(p.nextUp || 0) % (p.exercises.length || 1)];
+  change();
+  const j = cur ? p.exercises.findIndex(e => e.id === cur.id) : -1;
+  p.nextUp = j >= 0 ? j : 0;
+}
+
 // ---------- render: today ----------
-// pid given → rows are tappable to pick which exercise gets +1 rep after the workout
-function exList(p, pid, withBuyout = true) {
+// pid given → rows are tappable to pick which exercise gets +1 rep after the workout.
+// active given → rep boxes become inputs for the reps actually done.
+function exList(p, pid, active) {
   const n = (p.nextUp || 0) % (p.exercises.length || 1);
   let h = `<ul class="ex">` + p.exercises.map((e, i) => {
     const next = pid && i === n;
-    return `<li${pid ? ` data-act="setNext" data-p="${pid}" data-i="${i}"` : ''}><span class="reps">${e.reps}</span><span class="name">${esc(e.name)}${next ? '<span class="up">↑ +1 next</span>' : ''}</span><span class="kg">${kgTxt(e.kg)}</span></li>`;
+    let box = `<span class="reps">${e.reps}</span>`;
+    if (active) {
+      const v = (active.done || {})[e.id] ?? e.reps;
+      box = `<input class="reps${+v < e.reps ? ' miss' : ''}" type="number" inputmode="numeric" min="0" data-done="${e.id}" data-target="${e.reps}" value="${esc(v)}" aria-label="Reps done">`;
+    }
+    return `<li${pid ? ` data-act="setNext" data-p="${pid}" data-i="${i}"` : ''}>${box}<span class="name">${esc(e.name)}${next ? '<span class="up">↑ +1 next</span>' : ''}</span><span class="kg">${kgTxt(e.kg)}</span></li>`;
   }).join('') + `</ul>`;
-  if (pid) h += `<div class="meta">Tap an exercise to choose which one goes up after the workout.</div>`;
-  if (!withBuyout) return h;
-  if (p.buyout.length) {
-    h += `<div class="sub">Buy-out</div><ul class="ex">` + p.buyout.map(b =>
-      `<li><span class="reps">max</span><span class="name">${esc(b.name)} <span class="muted">until failure</span></span><span class="kg">${kgTxt(b.kg)}</span></li>`
-    ).join('') + `</ul>`;
+  if (pid && !active) h += `<div class="meta">Tap an exercise to choose which one goes up after the workout.</div>`;  if (p.buyout.length) {
+    h += `<div class="sub">Buy-out</div><ul class="ex">` + p.buyout.map(b => {
+      const box = active
+        ? `<input class="reps" type="number" inputmode="numeric" min="0" placeholder="max" data-bo="${b.id}" value="${esc(active.buyout[b.id] ?? '')}">`
+        : `<span class="reps">max</span>`;
+      return `<li>${box}<span class="name">${esc(b.name)}</span><span class="kg">${kgTxt(b.kg)}</span></li>`;
+    }).join('') + `</ul>`;
   }
   return h;
 }
@@ -335,15 +370,13 @@ function renderToday() {
   if (!a) {
     const id = S.nextMain, p = S.programs[id];
     const last = S.history[S.history.length - 1];
-    const ne = p.exercises[(p.nextUp || 0) % p.exercises.length];
     const p3 = S.programs.p3;
     el.innerHTML = `
-      <section class="card hero" style="--pc:var(--${id})">
+      <section class="card" style="--pc:var(--${id})">
         <div class="eyebrow">Up next</div>
         <h1>${esc(p.name)} <span class="tag">E6MOM × ${TARGET}</span></h1>
         <div class="muted"><small>${last ? `Last workout: ${esc(last.name)} · ${daysAgo(last.date)}` : 'No workouts logged yet'}</small></div>
         ${exList(p, id)}
-        ${ne ? `<div class="hint">After this workout: <b>${esc(ne.name)}</b> goes ${ne.reps} → ${ne.reps + 1} reps</div>` : ''}
         <button class="btn primary big" data-act="start" data-p="${id}">Start ${esc(p.name)}</button>
       </section>
       <section class="card" style="--pc:var(--p3)">
@@ -360,32 +393,28 @@ function renderToday() {
   }
   const p = S.programs[a.program];
   el.innerHTML = `
-    <section class="card timer-card" style="--pc:var(--${a.program})">
-      <div class="eyebrow">${esc(p.name)} · E6MOM</div>
-      <div class="ring">
-        <svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="45"/><circle id="t-bar" class="bar" cx="50" cy="50" r="45"/></svg>
-        <div class="ring-text"><div id="t-time">0:00</div><div class="muted">of 6:00</div></div>
+    <section class="card tcard" style="--pc:var(--${a.program})">
+      <div class="twrap">
+        <div class="ring" data-act="pause" role="button" aria-label="Tap to pause or resume">
+          <svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="45"/><circle id="t-bar" class="bar" cx="50" cy="50" r="45"/></svg>
+          <div class="ring-text">
+            <div class="eyebrow">${esc(p.name)}</div>
+            <div id="t-time">0:00</div>
+            <div id="t-sub">of 6:00</div>
+            <div id="t-round" class="round"></div>
+            <div id="t-dots" class="dots"></div>
+          </div>
+        </div>
+        <div class="tools">
+          <button class="ibr" data-act="roundPlus" aria-label="Next round">+1</button>
+          <button class="ibr" data-act="roundMinus" aria-label="Previous round">−1</button>
+          <button class="ibr" data-act="restartRound" aria-label="Restart this round"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
+        </div>
       </div>
-      <div id="t-round" class="round"></div>
-      <div id="t-dots" class="dots"></div>
-      <div class="controls">
-        <button class="btn" data-act="roundMinus">− Round</button>
-        <button class="btn primary" id="t-pause" data-act="pause">Pause</button>
-        <button class="btn" data-act="roundPlus">+ Round</button>
-      </div>
-      <button class="link" data-act="restartRound">Restart this round</button>
     </section>
     <section class="card">
-      <h2>Every 6 minutes</h2>
-      ${exList(p, a.program, false)}
+      ${exList(p, a.program, a)}
     </section>
-    ${p.buyout.length ? `
-    <section class="card">
-      <h2>Buy-out <span class="muted"><small>· reps until failure</small></span></h2>
-      ${p.buyout.map(b => `
-        <div class="bo"><span class="name">${esc(b.name)} <span class="muted">${kgTxt(b.kg)}</span></span>
-        <input type="number" inputmode="numeric" min="0" placeholder="reps" data-bo="${b.id}" value="${esc(a.buyout[b.id] ?? '')}"></div>`).join('')}
-    </section>` : ''}
     <button class="btn primary big" style="--pc:var(--good)" data-act="finish">Finish & save</button>
     <button class="btn danger block" data-act="cancel">Cancel workout</button>`;
   tick();
@@ -421,7 +450,15 @@ function programCard(pid) {
   const sessions = S.history.filter(h => h.program === pid);
   const n = (p.nextUp || 0) % (p.exercises.length || 1);
   const ed = editing === pid;
-  const nameInput = (list, i, name) => `<input class="nm" value="${esc(name)}" data-rn="${pid}" data-l="${list}" data-i="${i}" aria-label="Exercise name">`;
+  const nameInput = (list, i, name) => {
+    const at = `data-p="${pid}" data-l="${list}" data-i="${i}"`;
+    return `<div class="nmrow">
+      <input class="nm" value="${esc(name)}" data-rn="${pid}" data-l="${list}" data-i="${i}" aria-label="Exercise name">
+      <button class="ib" data-act="move" ${at} data-d="-1" aria-label="Move up"${i === 0 ? ' disabled' : ''}>↑</button>
+      <button class="ib" data-act="move" ${at} data-d="1" aria-label="Move down"${i === p[list].length - 1 ? ' disabled' : ''}>↓</button>
+      <button class="ib del" data-act="removeEx" ${at} aria-label="Remove">✕</button>
+    </div>`;
+  };
   const rows = p.exercises.map((e, i) => `
     <div class="erow">
       ${ed ? nameInput('exercises', i, e.name)
@@ -434,7 +471,7 @@ function programCard(pid) {
     const last = results.length ? results[results.length - 1].reps : null;
     return `
     <div class="erow">
-      ${ed ? nameInput('buyout', i, b.name) : `<div class="ename">${esc(b.name)} <span class="muted">until failure</span></div>`}
+      ${ed ? nameInput('buyout', i, b.name) : `<div class="ename">${esc(b.name)}</div>`}
       <div class="steppers">${stepper(pid, 'buyout', i, 'kg', b.kg, 'kg', 2.5)}</div>
       <div class="meta">${best == null ? 'No results yet' : `Last: ${last} reps · Best: ${best} reps`}</div>
     </div>`;
@@ -444,11 +481,13 @@ function programCard(pid) {
       <details ${pid !== 'p3' ? 'open' : ''}>
         <summary class="row"><h2 style="margin:0">${esc(p.name)} <span class="chev">›</span></h2><span class="muted"><small>done ${sessions.length}×</small></span></summary>
         <div class="row">
-          <div class="meta">${ed ? 'Type new names, then tap Done.' : 'Tap an exercise name to choose which one gets +1 rep next.'}</div>
-          <button class="btn" style="padding:8px 14px;flex:none" data-act="editNames" data-p="${pid}">${ed ? 'Done' : 'Edit names'}</button>
+          <div class="meta">${ed ? 'Rename, reorder, add or remove, then tap Done.' : 'Tap an exercise name to choose which one gets +1 rep next.'}</div>
+          <button class="btn" style="padding:8px 14px;flex:none" data-act="editNames" data-p="${pid}">${ed ? 'Done' : 'Edit'}</button>
         </div>
         ${rows}
-        ${p.buyout.length ? `<div class="sub">Buy-out</div>${bos}` : ''}
+        ${ed ? `<button class="btn block" data-act="addEx" data-p="${pid}" data-l="exercises">+ Add exercise</button>` : ''}
+        ${p.buyout.length || ed ? `<div class="sub">Buy-out</div>${bos}` : ''}
+        ${ed ? `<button class="btn block" data-act="addEx" data-p="${pid}" data-l="buyout">+ Add buy-out</button>` : ''}
       </details>
     </section>`;
 }
@@ -460,9 +499,9 @@ function sparkline(vals) {
   return `<svg viewBox="0 0 64 28"><polyline points="${pts}"/></svg>`;
 }
 
-function trend(item, logged, isBuyout) {
+function trend(item, logged) {
   const pts = logged.filter(x => x && x.reps != null);
-  const name = `<b>${esc(item.name)}</b>${isBuyout ? ' <span class="muted"><small>until failure</small></span>' : ''}`;
+  const name = `<b>${esc(item.name)}</b>`;
   if (!pts.length) return `<div class="trend"><div class="tn">${name}<div class="tv">No data in this period</div></div></div>`;
   const a = pts[0], z = pts[pts.length - 1];
   const val = x => `${x.reps} reps${x.kg ? ` × ${+x.kg} kg` : ''}`;
@@ -491,8 +530,8 @@ function progressCard() {
   if (!ss.length) body = `<div class="muted" style="margin-top:12px">No ${esc(p.name)} workouts in this period.</div>`;
   else body = `
     <div class="meta" style="margin:12px 0 4px">${ss.length} workout${ss.length > 1 ? 's' : ''} · first ${dateShort(ss[0].date)}, last ${dateShort(ss[ss.length - 1].date)}</div>
-    ${p.exercises.map(e => trend(e, ss.map(s => s.exercises.find(x => same(x, e))), false)).join('')}
-    ${p.buyout.length ? `<div class="sub">Buy-out</div>` + p.buyout.map(b => trend(b, ss.map(s => (s.buyout || []).find(x => same(x, b))), true)).join('') : ''}`;
+    ${p.exercises.map(e => trend(e, ss.map(s => s.exercises.find(x => same(x, e))))).join('')}
+    ${p.buyout.length ? `<div class="sub">Buy-out</div>` + p.buyout.map(b => trend(b, ss.map(s => (s.buyout || []).find(x => same(x, b))))).join('') : ''}`;
   return `
     <section class="card" style="--pc:var(--${progP})">
       <h2>Progress</h2>
@@ -505,21 +544,47 @@ function progressCard() {
     </section>`;
 }
 
+// compare a workout with the previous one of the same program: green up, grey same, yellow down
+function changeBadge(h, idx) {
+  let prev = null;
+  for (let j = idx - 1; j >= 0; j--) if (S.history[j].program === h.program) { prev = S.history[j]; break; }
+  if (!prev) return '';
+  const sum = (s, f) => s.exercises.reduce((t, e) => t + (+e[f] || 0), 0);
+  const dReps = sum(h, 'reps') - sum(prev, 'reps');
+  const dKg = Math.round((sum(h, 'kg') - sum(prev, 'kg')) * 100) / 100;
+  if (dReps > 0 || (dReps === 0 && dKg > 0))
+    return `<span class="chg up">${dReps ? `+${dReps} rep${dReps === 1 ? '' : 's'}` : `+${dKg} kg`}</span>`;
+  if (dReps < 0 || dKg < 0)
+    return `<span class="chg down">${dReps ? `${dReps} rep${dReps === -1 ? '' : 's'}` : `${dKg} kg`}</span>`;
+  return `<span class="chg same">same</span>`;
+}
+
 function renderStats() {
   const now = Date.now();
   const within = d => S.history.filter(h => now - new Date(h.date) < d * 86400000).length;
-  const hist = S.history.slice().reverse().map(h => `
-    <details class="hist">
-      <summary><span class="pill" style="background:var(--${h.program})"></span><b>${esc(h.name)}</b>
-        <span class="muted"><small> · ${dateTxt(h.date)}</small></span></summary>
-      <div class="body">
-        ${h.rounds} rounds · ${fmt(h.durationMs)} min
+  const hist = S.history.map((h, idx) => {
+    const ed = editHist === h.id;
+    const heInput = (k, i, v) => `<input type="number" inputmode="numeric" min="0" data-he="${h.id}" data-k="${k}" data-i="${i}" value="${v ?? ''}" aria-label="Reps done">`;
+    const body = ed
+      ? h.exercises.map((e, i) => `<div class="he">${heInput('exercises', i, e.reps)}<span>${esc(e.name)}${e.target ? ` <small>(goal ${e.target})</small>` : ''}</span></div>`).join('') +
+        (h.buyout || []).map((b, i) => `<div class="he">${heInput('buyout', i, b.reps)}<span>${esc(b.name)} <small>(buy-out)</small></span></div>`).join('')
+      : `${h.rounds} rounds · ${fmt(h.durationMs)} min
         ${h.progressed ? `<br>↑ ${esc(h.progressed.name)}: ${h.progressed.from} → ${h.progressed.to} reps` : ''}
-        <br>${h.exercises.map(e => `${e.reps}× ${esc(e.name)}${e.kg ? ` (${+e.kg} kg)` : ''}`).join('<br>')}
-        ${(h.buyout || []).length ? `<br>Buy-out: ${h.buyout.map(b => `${esc(b.name)} ${b.reps ?? '–'} reps`).join(', ')}` : ''}
-      </div>
-      <button class="del" data-act="del" data-id="${h.id}">Delete this workout</button>
-    </details>`).join('');
+        <br>${h.exercises.map(e => {
+          const miss = e.target && e.reps < e.target;
+          return `<span${miss ? ' class="miss"' : ''}>${e.reps ?? '–'}${miss ? `/${e.target}` : ''}× ${esc(e.name)}</span>${e.kg ? ` (${+e.kg} kg)` : ''}`;
+        }).join('<br>')}
+        ${(h.buyout || []).length ? `<br>Buy-out: ${h.buyout.map(b => `${esc(b.name)} ${b.reps ?? '–'} reps`).join(', ')}` : ''}`;
+    return `
+    <details class="hist"${openHist === h.id ? ' open' : ''}>
+      <summary><span class="pill" style="background:var(--${h.program})"></span>
+        <span class="when"><b>${esc(h.name)}</b><span class="muted"><small> · ${dateTxt(h.date)}</small></span></span>
+        ${changeBadge(h, idx)}</summary>
+      <div class="body">${body}</div>
+      <button class="edit" data-act="editHist" data-id="${h.id}">${ed ? 'Done' : 'Edit reps'}</button>
+      ${ed ? '' : `<button class="del" data-act="del" data-id="${h.id}">Delete</button>`}
+    </details>`;
+  }).reverse().join('');
 
   $('#view-stats').innerHTML = `
     <div class="stats3">
@@ -548,21 +613,23 @@ function renderStats() {
 function render() {
   $('#view-today').hidden = tab !== 'today';
   $('#view-stats').hidden = tab !== 'stats';
-  document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === tab));
+  $('#switch').innerHTML = tab === 'today'
+    ? `<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Stats`
+    : `<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>Today`;
   if (tab === 'today') renderToday(); else renderStats();
 }
 
 // ---------- actions ----------
 const actions = {
-  tab(d) {
-    tab = d.t;
+  tab() {
+    tab = tab === 'today' ? 'stats' : 'today';
     try { localStorage.setItem('wt-tab', tab); } catch (e) {}
     render(); window.scrollTo(0, 0);
   },
   start(d, btn, ev) {
     ev.preventDefault(); // don't toggle <details> when the button sits in a summary
     ensureAudio();
-    S.active = { program: d.p, startedAt: Date.now(), acc: 0, runSince: Date.now(), lastDone: 0, buyout: {} };
+    S.active = { program: d.p, startedAt: Date.now(), acc: 0, runSince: Date.now(), lastDone: 0, buyout: {}, done: {} };
     save(); keepAwake(); render();
   },
   pause() {
@@ -581,18 +648,26 @@ const actions = {
     const session = {
       id: uid(), date: new Date(a.startedAt).toISOString(), program: a.program, name: p.name,
       rounds, durationMs: e,
-      exercises: p.exercises.map(x => ({ id: x.id, name: x.name, reps: x.reps, kg: x.kg })),
+      exercises: p.exercises.map(x => {
+        const v = parseInt((a.done || {})[x.id], 10);
+        return { id: x.id, name: x.name, reps: isNaN(v) ? x.reps : v, target: x.reps, kg: x.kg };
+      }),
       buyout: p.buyout.map(b => {
         const v = parseInt(a.buyout[b.id], 10);
         return { id: b.id, name: b.name, kg: b.kg, reps: isNaN(v) ? null : v };
       }),
     };
-    session.progressed = progress(p);
+    // the exercise due for +1 only goes up if all its reps were done; otherwise it gets another try next time
+    const nx = p.exercises[(p.nextUp || 0) % (p.exercises.length || 1)];
+    const nxDone = nx && session.exercises.find(x => x.id === nx.id);
+    const missed = nxDone && nxDone.reps < nxDone.target;
+    session.progressed = missed ? null : progress(p);
     S.history.push(session);
     if (MAIN.includes(a.program)) S.nextMain = other(a.program);
     S.active = null;
     save(); releaseAwake(); render();
-    toast(session.progressed ? `Saved! ${session.progressed.name} is now ${session.progressed.to} reps` : 'Workout saved!');
+    toast(missed ? `Saved! ${nx.name} stays at ${nx.reps} reps for next time`
+      : session.progressed ? `Saved! ${session.progressed.name} is now ${session.progressed.to} reps` : 'Workout saved!');
   },
   cancel() {
     if (!confirm('Cancel this workout? Nothing will be saved.')) return;
@@ -615,7 +690,27 @@ const actions = {
     } else editing = d.p;
     render();
   },
+  move(d) {
+    const p = S.programs[d.p];
+    keepNext(p, () => {
+      const arr = p[d.l], i = +d.i, j = i + +d.d;
+      if (j < 0 || j >= arr.length) return;
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    });
+    save(); render();
+  },
+  removeEx(d) {
+    const p = S.programs[d.p], item = p[d.l][+d.i];
+    if (!confirm(`Remove "${item.name}"? Its old results stay in your history.`)) return;
+    keepNext(p, () => p[d.l].splice(+d.i, 1));
+    save(); render();
+  },
+  addEx(d) {
+    S.programs[d.p][d.l].push(ex('Placeholder', d.l === 'buyout' ? 0 : 12));
+    save(); render();
+  },
   progP(d) { progP = d.p; render(); },
+  editHist(d) { editHist = editHist === d.id ? null : d.id; openHist = d.id; render(); },
   del(d) {
     if (!confirm('Delete this workout from history? (Reps/kg are not changed.)')) return;
     S.history = S.history.filter(h => h.id !== d.id);
@@ -633,6 +728,7 @@ const actions = {
 };
 
 document.addEventListener('click', ev => {
+  if (ev.target.matches('input')) return; // typing in a rep box shouldn't trigger its row
   const b = ev.target.closest('[data-act]');
   if (b && actions[b.dataset.act]) actions[b.dataset.act](b.dataset, b, ev);
 });
@@ -640,6 +736,16 @@ document.addEventListener('input', ev => {
   const id = ev.target.dataset.bo;
   if (id && S.active) { S.active.buyout[id] = ev.target.value; save(); }
   const t = ev.target.dataset;
+  if (t.done && S.active) {
+    (S.active.done = S.active.done || {})[t.done] = ev.target.value;
+    ev.target.classList.toggle('miss', ev.target.value !== '' && +ev.target.value < +t.target);
+    save();
+  }
+  if (t.he) {
+    const v = parseInt(ev.target.value, 10);
+    S.history.find(h => h.id === t.he)[t.k][+t.i].reps = isNaN(v) ? null : v;
+    save();
+  }
   if (t.rn) { S.programs[t.rn][t.l][+t.i].name = ev.target.value; save(); }
 });
 document.addEventListener('change', ev => {
