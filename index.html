@@ -18,7 +18,6 @@
   html, body { margin: 0; background: var(--bg); color: var(--text);
     font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
   main { max-width: 560px; margin: 0 auto; padding: 16px 16px 8px; }
-  h1 { font-size: 28px; margin: 2px 0 4px; }
   h2 { font-size: 17px; margin: 0 0 10px; }
   button { font: inherit; color: inherit; cursor: pointer; }
   .muted { color: var(--muted); }
@@ -31,16 +30,16 @@
 
   .btn { border: 1px solid var(--line); background: var(--card2); border-radius: 14px; padding: 12px 16px; font-weight: 600; }
   .btn.primary { background: var(--pc, var(--accent)); border-color: transparent; color: #fff; }
-  .btn.big { width: 100%; padding: 16px; font-size: 18px; margin-top: 14px; }
+  .btn.big { width: 100%; padding: 16px; font-size: 18px; margin-top: 0; }
   .btn.danger { color: var(--danger); background: transparent; }
   .btn.block { width: 100%; margin-top: 10px; }
-  .link { background: none; border: 0; color: var(--accent); padding: 10px 0; font-weight: 600; }
 
   ul.ex { list-style: none; padding: 0; margin: 12px 0 0; }
   ul.ex li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
   ul.ex li:last-child { border-bottom: 0; }
   ul.ex li[data-act] { cursor: pointer; border-radius: 10px; }
-  ul.ex li[data-act]:active { background: var(--card2); }  ul.ex .reps { min-width: 44px; text-align: center; font-weight: 800; font-size: 18px; background: var(--card2); border-radius: 10px; padding: 4px 6px; }
+  ul.ex li[data-act]:active { background: var(--card2); }
+  ul.ex .reps { min-width: 44px; text-align: center; font-weight: 800; font-size: 18px; background: var(--card2); border-radius: 10px; padding: 4px 6px; }
   ul.ex .name { flex: 1; }
   ul.ex .kg { color: var(--muted); font-variant-numeric: tabular-nums; }
   /* looks like the plain kg text until tapped */
@@ -52,11 +51,10 @@
   .kgin input.miss { color: var(--warn); }
   .up { color: var(--good); font-size: 12px; font-weight: 700; margin-left: 6px; white-space: nowrap; }
   .sub { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-top: 16px; }
-  .hint { margin-top: 14px; background: rgba(62,207,142,.1); border: 1px solid rgba(62,207,142,.3); color: var(--text); border-radius: 12px; padding: 10px 12px; font-size: 14px; }
 
   details > summary { list-style: none; cursor: pointer; }
   details > summary::-webkit-details-marker { display: none; }
-  .chev { transition: transform .2s; color: var(--muted); }
+  .chev { display: inline-block; transition: transform .2s; color: var(--muted); }
   details[open] .chev { transform: rotate(90deg); }
 
   /* timer */
@@ -94,20 +92,45 @@
   input[type=number]::-webkit-inner-spin-button,
   input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 
-  /* stats */
-  .stats3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
-  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 12px; text-align: center; }
-  .stat b { display: block; font-size: 26px; }
-  .stat span { color: var(--muted); font-size: 12px; }
+  /* extra rounds (program 3) */
+  .xr { display: flex; gap: 8px; }
+  .xdot { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line); background: var(--card2); padding: 0; }
+  .xdot.on { background: var(--good); border-color: var(--good); }
+  .xsum { font-size: 14px; color: var(--muted); margin-top: 8px; }
+
+  /* calendar */
   .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
   .cal-h { text-align: center; font-size: 11px; color: var(--muted); }
-  .cal-d { aspect-ratio: 1; border-radius: 9px; background: var(--card2); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--muted); }
+  .cal-d { position: relative; aspect-ratio: 1; border-radius: 9px; background: var(--card2); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--muted); }
   .cal-d.hit { color: #fff; font-weight: 700; }
   .cal-d.fut { opacity: .3; }
   .cal-d.today { outline: 2px solid var(--text); outline-offset: -2px; }
-  .legend { display: flex; gap: 14px; margin-top: 10px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
-  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; }
+  .xd { position: absolute; left: 0; right: 0; bottom: 3px; display: flex; justify-content: center; gap: 2px; }
+  .xd i, .legend i.xdl { width: 6px; height: 6px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 1.5px var(--card); }
+  .legend { display: flex; gap: 14px; margin-top: 10px; font-size: 13px; color: var(--muted); flex-wrap: wrap; align-items: center; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
 
+  /* progress charts */
+  .segs { display: flex; gap: 6px; margin-bottom: 10px; }
+  .seg { flex: 1; border: 1px solid var(--line); background: var(--card2); border-radius: 12px; padding: 9px 4px; font-size: 14px; font-weight: 600; color: var(--muted); }
+  .seg.on { background: var(--pc, var(--accent)); border-color: transparent; color: #fff; }
+  .chips { display: flex; gap: 6px; }
+  .chips .chip { flex: 1; }
+  .chip { border: 1px solid var(--line); background: none; border-radius: 99px; padding: 5px 12px; font-size: 13px; font-weight: 600; color: var(--muted); }
+  .chip.on { background: var(--card2); color: var(--text); border-color: var(--muted); }
+  .ch { padding: 14px 0 10px; border-bottom: 1px solid var(--line); }
+  .ch:last-child { border-bottom: 0; }
+  .chh { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .cv { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; margin: 2px 0 4px; min-height: 1.4em; }
+  svg.chart { display: block; width: 100%; height: auto; touch-action: pan-y; }
+  svg.chart .grid { stroke: var(--line); stroke-width: 1; stroke-dasharray: 3 3; }
+  svg.chart .ax { fill: var(--muted); font-size: 10px; font-family: inherit; }
+  svg.chart .ln { fill: none; stroke: var(--pc); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  svg.chart .mk { fill: var(--pc); stroke: var(--card); stroke-width: 2; }
+  svg.chart .xh { stroke: var(--muted); stroke-width: 1; }
+  svg.chart .hl { fill: var(--pc); stroke: var(--text); stroke-width: 2; }
+
+  /* settings */
   .erow { padding: 12px 0; border-bottom: 1px solid var(--line); }
   .erow:last-child { border-bottom: 0; }
   .ename { background: none; border: 0; padding: 0 0 8px; text-align: left; font-weight: 600; }
@@ -117,7 +140,6 @@
   .stp span { min-width: 64px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
   .stp small { color: var(--muted); font-weight: 500; margin-left: 3px; }
   .meta { font-size: 13px; color: var(--muted); margin-top: 6px; }
-
   .nmrow { display: flex; gap: 6px; margin-bottom: 8px; }
   .nmrow .nm { margin-bottom: 0; flex: 1; min-width: 0; }
   .ib { width: 40px; flex: none; border: 1px solid var(--line); background: var(--card2); border-radius: 10px; font-size: 16px; }
@@ -125,44 +147,39 @@
   .ib.del { color: var(--danger); }
   .nm { width: 100%; font: inherit; font-weight: 600; padding: 9px 12px; margin-bottom: 8px; border-radius: 10px;
     border: 1px solid var(--accent); background: var(--card2); color: var(--text); }
-  .segs { display: flex; gap: 6px; margin-bottom: 12px; }
-  .seg { flex: 1; border: 1px solid var(--line); background: var(--card2); border-radius: 12px; padding: 9px 4px; font-size: 14px; font-weight: 600; color: var(--muted); }
-  .seg.on { background: var(--pc); border-color: transparent; color: #fff; }
-  .dates { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .dates label { font-size: 12px; color: var(--muted); font-weight: 600; }
-  .dates input { width: 100%; font: inherit; padding: 9px 10px; margin-top: 4px; border-radius: 10px;
-    border: 1px solid var(--line); background: var(--card2); color: var(--text); color-scheme: dark; }
-  .trend { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--line); }
-  .trend:last-child { border-bottom: 0; }
-  .trend .tn { flex: 1; min-width: 0; }
-  .trend .tv { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
-  .trend .tv b { color: var(--text); }
-  .trend .dl { font-size: 13px; font-weight: 700; color: var(--good); }
-  .trend .dl.neg { color: var(--warn); }
-  .trend .dl.zero { color: var(--muted); }
-  .trend svg { width: 64px; height: 28px; flex: none; }
-  .trend polyline { fill: none; stroke: var(--pc); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
 
+  /* history */
   .hist { border-bottom: 1px solid var(--line); padding: 12px 0; }
   .hist:last-child { border-bottom: 0; }
-  .hist .pill { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }
+  .hist .pill { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; flex: none; }
   .hist .body { font-size: 14px; color: var(--muted); padding: 8px 0 0 18px; }
   .hist .del { background: none; border: 0; color: var(--danger); padding: 8px 0 0 18px; font-size: 14px; }
   .hist .edit { background: none; border: 0; color: var(--accent); padding: 8px 0 0 18px; font-size: 14px; font-weight: 600; }
   .hist summary { display: flex; align-items: center; }
   .hist summary .when { flex: 1; min-width: 0; }
+  .hist .miss { color: var(--warn); }
+  .hist .xtra { color: var(--good); }
   .chg { font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 99px; white-space: nowrap; }
   .chg.up { color: var(--good); background: rgba(62,207,142,.14); }
   .chg.same { color: var(--muted); background: var(--card2); }
   .chg.down { color: var(--warn); background: rgba(245,197,66,.14); }
-  .hist .miss { color: var(--warn); }
   .he { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
   .he input { width: 64px; font: inherit; text-align: center; padding: 6px; border-radius: 8px;
     border: 1px solid var(--line); background: var(--card2); color: var(--text); }
 
-  .switch { display: flex; align-items: center; gap: 8px; margin: 0 auto calc(24px + env(safe-area-inset-bottom));
-    padding: 11px 22px; border-radius: 99px; font-weight: 700; border: 1px solid var(--line); background: var(--card2); }
-  .switch svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  /* bottom navigation: part of the page, not stuck to the screen */
+  .bnav { max-width: 560px; margin: 4px auto calc(24px + env(safe-area-inset-bottom)); padding: 0 16px; display: flex; gap: 8px; }
+  .bnav button { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 11px 6px;
+    border-radius: 99px; font-weight: 700; font-size: 14px; border: 1px solid var(--line); background: var(--card2); color: var(--muted); }
+  .bnav button.on { color: var(--text); border-color: var(--muted); }
+  .bnav svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  .cal-d[data-act] { cursor: pointer; }
+  .pop { position: fixed; inset: 0; z-index: 10; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .pop[hidden] { display: none; }
+  .pop-card { width: 100%; max-width: 528px; max-height: 80vh; overflow-y: auto; background: var(--card);
+    border: 1px solid var(--line); border-radius: 18px; padding: 16px; cursor: default; }
+  .pop-card .hist .body { padding-left: 18px; }
 
   #toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(20px);
     background: var(--text); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 600; opacity: 0;
@@ -173,8 +190,14 @@
 <body>
 <main id="view-today"></main>
 <main id="view-stats" hidden></main>
+<main id="view-settings" hidden></main>
 
-<button class="switch" id="switch" data-act="tab"></button>
+<nav class="bnav">
+  <button data-act="tab" data-t="today"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>Today</button>
+  <button data-act="tab" data-t="stats"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Stats</button>
+  <button data-act="tab" data-t="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Settings</button>
+</nav>
+<div id="pop" class="pop" data-act="closePop" hidden><div id="pop-card" class="pop-card" data-act="noop"></div></div>
 <div id="toast"></div>
 <input type="file" id="importFile" accept="application/json,.json" hidden>
 
@@ -182,7 +205,9 @@
 const KEY = 'wt-state-v1';
 const roundMs = () => (S.roundMin || 6) * 60 * 1000;
 const TARGET = 4;
+const EXTRA_MAX = 3;
 const MAIN = ['p1', 'p2'];
+const VIEWS = ['today', 'stats', 'settings'];
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 const ex = (name, reps, kg = 0) => ({ id: uid(), name, reps, kg });
@@ -223,7 +248,7 @@ function save() {
 }
 
 let S = load();
-let tab = (() => { try { return localStorage.getItem('wt-tab') || 'today'; } catch (e) { return 'today'; } })();
+let tab = (() => { try { const t = localStorage.getItem('wt-tab'); return VIEWS.includes(t) ? t : 'today'; } catch (e) { return 'today'; } })();
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -231,21 +256,15 @@ const pad = n => String(n).padStart(2, '0');
 const fmt = ms => { const t = Math.floor(ms / 1000); return `${Math.floor(t / 60)}:${pad(t % 60)}`; };
 const kgTxt = kg => kg ? `${+kg} kg` : '';
 const dayKey = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const dShort = t => new Date(t).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 const other = p => p === 'p1' ? 'p2' : 'p1';
 // match a logged exercise to a program exercise; older logs have no id, so fall back to the name
 const same = (x, e) => x && (x.id ? x.id === e.id : x.name === e.name);
-const dateShort = iso => new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 
-let editing = null;                          // program id whose names are being edited
-let progP = 'p1', progFrom = '', progTo = ''; // progress view filters
-let editHist = null, openHist = null;         // history entry being edited / kept open
+let editing = null;                    // program id whose exercises are being edited
+let progP = 'p1', progRange = 14;      // stats chart filters (range in days, 0 = all; 2 weeks by default)
+let editHist = null, openHist = null;  // history entry being edited / kept open
 
-function daysAgo(iso) {
-  const a = new Date(iso); a.setHours(0, 0, 0, 0);
-  const b = new Date(); b.setHours(0, 0, 0, 0);
-  const n = Math.round((b - a) / 86400000);
-  return n === 0 ? 'today' : n === 1 ? 'yesterday' : `${n} days ago`;
-}
 function dateTxt(iso) {
   const d = new Date(iso);
   return d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' }) + ' · ' +
@@ -256,6 +275,15 @@ function toast(msg) {
   const t = $('#toast');
   t.textContent = msg; t.classList.add('show');
   clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ---------- workout state ----------
+// There is always a workout ready on the Today tab; it only starts counting on the first tap.
+const newActive = pid => ({ program: pid, startedAt: Date.now(), acc: 0, runSince: null, firstStart: null,
+  lastDone: 0, buyout: {}, done: {}, kg: {}, extra: 0 });
+function ensureActive() {
+  if (!S.active) { S.active = newActive(S.nextMain); save(); }
+  return S.active;
 }
 
 // ---------- timer ----------
@@ -371,7 +399,7 @@ function exList(p, pid, active) {
     }
     return `<li${pid ? ` data-act="setNext" data-p="${pid}" data-i="${i}"` : ''}>${box}<span class="name">${esc(e.name)}${next ? '<span class="up">↑ +1 next</span>' : ''}</span>${kgCell(e, active)}</li>`;
   }).join('') + `</ul>`;
-  if (pid && !active) h += `<div class="meta">Tap an exercise to choose which one goes up after the workout.</div>`;  if (p.buyout.length) {
+  if (p.buyout.length) {
     h += `<div class="sub">Buy-out</div><ul class="ex">` + p.buyout.map(b => {
       const box = active
         ? `<input class="reps" type="number" inputmode="numeric" min="0" placeholder="max" data-bo="${b.id}" value="${esc(active.buyout[b.id] ?? '')}">`
@@ -383,38 +411,14 @@ function exList(p, pid, active) {
 }
 
 function renderToday() {
-  const el = $('#view-today');
-  const a = S.active;
-  if (!a) {
-    const id = S.nextMain, p = S.programs[id];
-    const last = S.history[S.history.length - 1];
-    const p3 = S.programs.p3;
-    el.innerHTML = `
-      <section class="card" style="--pc:var(--${id})">
-        <div class="eyebrow">Up next</div>
-        <h1>${esc(p.name)} <span class="tag">E${S.roundMin || 6}MOM × ${TARGET}</span></h1>
-        <div class="muted"><small>${last ? `Last workout: ${esc(last.name)} · ${daysAgo(last.date)}` : 'No workouts logged yet'}</small></div>
-        ${exList(p, id)}
-        <button class="btn primary big" data-act="start" data-p="${id}">Start ${esc(p.name)}</button>
-      </section>
-      <section class="card" style="--pc:var(--p3)">
-        <details>
-          <summary class="row">
-            <div><div class="eyebrow">Extra</div><b>${esc(p3.name)}</b> <span class="chev">›</span></div>
-            <button class="btn primary" data-act="start" data-p="p3">Start</button>
-          </summary>
-          ${exList(p3, 'p3')}
-        </details>
-      </section>
-      <button class="link" data-act="swapNext">Switch upcoming to ${esc(S.programs[other(id)].name)}</button>`;
-    return;
-  }
-  const p = S.programs[a.program];
-  el.innerHTML = `
+  const a = ensureActive();
+  const p = S.programs[a.program], p3 = S.programs.p3;
+  const xr = a.extra || 0;
+  $('#view-today').innerHTML = `
     <section class="card tcard" style="--pc:var(--${a.program})">
       <div class="ttotal" aria-label="Total workout time"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg><span id="t-total">0:00</span></div>
       <div class="twrap">
-        <div class="ring" data-act="pause" role="button" aria-label="Tap to pause or resume">
+        <div class="ring" data-act="pause" role="button" aria-label="Tap to start, pause or resume">
           <svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="45"/><circle id="t-bar" class="bar" cx="50" cy="50" r="45"/></svg>
           <div class="ring-text">
             <div id="t-time">0:00</div>
@@ -433,32 +437,200 @@ function renderToday() {
         </div>
       </div>
     </section>
-    <section class="card">
+    <section class="card" style="--pc:var(--${a.program})">
+      <div class="eyebrow">Today</div>
+      <h2 style="margin:2px 0 0">${esc(p.name)} <span class="tag">E${S.roundMin || 6}MOM × ${TARGET}</span></h2>
       ${exList(p, a.program, a)}
     </section>
+    ${a.program !== 'p3' ? `
+    <section class="card" style="--pc:var(--p3)">
+      <div class="row">
+        <div><div class="eyebrow">Extra</div><b>${esc(p3.name)}</b></div>
+        <div class="xr">${Array.from({ length: EXTRA_MAX }, (_, i) =>
+          `<button class="xdot${xr > i ? ' on' : ''}" data-act="extra" data-n="${i + 1}" aria-label="${i + 1} extra round${i ? 's' : ''}"></button>`).join('')}</div>
+      </div>
+      <details${xr ? ' open' : ''}>
+        <summary class="xsum">${xr ? `${xr} of ${EXTRA_MAX} rounds` : 'Tap a dot for each round you do'} · exercises <span class="chev">›</span></summary>
+        ${exList(p3, 'p3')}
+      </details>
+    </section>` : ''}
     <button class="btn primary big" style="--pc:var(--good)" data-act="finish">Finish & save</button>
-    <button class="btn danger block" data-act="cancel">Cancel workout</button>`;
+    <button class="btn danger block" data-act="cancel">Reset workout</button>`;
   tick();
 }
 
 // ---------- render: stats ----------
+// sessions that contain a program's exercises; program 3 is logged as "extra" on a program 1/2 workout
+function sessionsFor(pid) {
+  return S.history.flatMap(h => {
+    if (pid === 'p3') {
+      if (h.program === 'p3') return [h]; // standalone program 3 workouts from older versions
+      return h.extra && h.extra.rounds ? [{ date: h.date, exercises: h.extra.exercises, buyout: [] }] : [];
+    }
+    return h.program === pid ? [h] : [];
+  });
+}
+
 function calendar() {
   const byDay = {};
-  S.history.forEach(h => { const k = dayKey(new Date(h.date)); (byDay[k] = byDay[k] || []).push(h.program); });
+  S.history.forEach(h => {
+    const d = byDay[dayKey(new Date(h.date))] = byDay[dayKey(new Date(h.date))] || { ps: [], extra: 0 };
+    if (h.program === 'p3') d.extra = Math.max(d.extra, Math.min(EXTRA_MAX, h.rounds || 1));
+    else d.ps.push(h.program);
+    if (h.extra) d.extra = Math.max(d.extra, h.extra.rounds);
+  });
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const start = new Date(today); start.setDate(today.getDate() - ((today.getDay() + 6) % 7) - 28);
   let cells = ['M', 'T', 'W', 'T', 'F', 'S', 'S'].map(d => `<div class="cal-h">${d}</div>`).join('');
   for (let i = 0; i < 35; i++) {
     const d = new Date(start); d.setDate(start.getDate() + i);
-    const ps = byDay[dayKey(d)] || [];
+    const day = byDay[dayKey(d)] || { ps: [], extra: 0 };
+    const ps = day.ps;
     const bg = ps.length === 0 ? '' : ps.length === 1 ? `var(--${ps[0]})`
       : `linear-gradient(135deg, var(--${ps[0]}) 50%, var(--${ps[1]}) 50%)`;
-    cells += `<div class="cal-d${ps.length ? ' hit' : ''}${d > today ? ' fut' : ''}${+d === +today ? ' today' : ''}"${bg ? ` style="background:${bg}"` : ''}>${d.getDate()}</div>`;
+    const dots = day.extra ? `<span class="xd">${'<i></i>'.repeat(day.extra)}</span>` : '';
+    const any = ps.length || day.extra;
+    cells += `<div class="cal-d${ps.length ? ' hit' : ''}${d > today ? ' fut' : ''}${+d === +today ? ' today' : ''}"${bg ? ` style="background:${bg}"` : ''}${any ? ` data-act="day" data-k="${dayKey(d)}" role="button"` : ''}>${d.getDate()}${dots}</div>`;
   }
   return `<div class="cal">${cells}</div>
-    <div class="legend">${['p1', 'p2', 'p3'].map(k => `<span><i style="background:var(--${k})"></i>${esc(S.programs[k].name)}</span>`).join('')}</div>`;
+    <div class="legend">${MAIN.map(k => `<span><i style="background:var(--${k})"></i>${esc(S.programs[k].name)}</span>`).join('')}
+      <span><i class="xdl"></i>${esc(S.programs.p3.name)} rounds</span></div>`;
 }
 
+// kg decides first; reps only count when the kg is unchanged. 1 = up, -1 = down, 0 = same
+const direction = (dKg, dReps) => Math.sign(dKg) || Math.sign(dReps);
+function changeText(dKg, dReps) {
+  const sign = v => (v > 0 ? '+' : '') + v;
+  return [dKg && `${sign(dKg)} kg`, dReps && `${sign(dReps)} rep${Math.abs(dReps) === 1 ? '' : 's'}`].filter(Boolean).join(' · ');
+}
+function badge(dKg, dReps) {
+  const dir = direction(dKg, dReps);
+  return `<span class="chg ${dir > 0 ? 'up' : dir < 0 ? 'down' : 'same'}">${changeText(dKg, dReps) || 'same'}</span>`;
+}
+
+// one line chart per exercise: reps over time, x spaced by date
+const charts = {}; // chart key → points, for the tap/hover readout
+function chart(key, item, pts) {
+  const val = x => `${x.reps} reps${x.kg ? ` · ${+x.kg} kg` : ''}`;
+  if (!pts.length) return `<div class="ch"><div class="chh"><b>${esc(item.name)}</b></div><div class="cv">No data yet</div></div>`;
+  const W = 320, H = 96, L = 26, R = 10, T = 8, B = 22;
+  const t0 = pts[0].t, t1 = pts[pts.length - 1].t;
+  let lo = Math.min(...pts.map(p => p.reps)), hi = Math.max(...pts.map(p => p.reps));
+  if (lo === hi) { lo -= 1; hi += 1; }
+  const X = t => t1 === t0 ? (L + W - R) / 2 : L + (t - t0) / (t1 - t0) * (W - R - L);
+  const Y = v => T + (hi - v) / (hi - lo) * (H - B - T);
+  const xy = pts.map(p => [+X(p.t).toFixed(1), +Y(p.reps).toFixed(1)]);
+  charts[key] = pts.map((p, i) => ({ x: xy[i][0], y: xy[i][1], text: `${dShort(p.t)}: ${val(p)}` }));
+  const first = pts[0], last = pts[pts.length - 1];
+  const change = pts.length > 1 ? badge(Math.round((last.kg - first.kg) * 100) / 100, last.reps - first.reps) : '';
+  return `<div class="ch">
+    <div class="chh"><b>${esc(item.name)}</b>${change}</div>
+    <div class="cv" id="cv-${key}" data-def="${esc(val(last))}">${esc(val(last))}</div>
+    <svg class="chart" viewBox="0 0 ${W} ${H}" data-key="${key}" role="img" aria-label="${esc(item.name)}: reps over time, latest ${esc(val(last))}">
+      <line class="grid" x1="${L}" x2="${W - R}" y1="${Y(hi)}" y2="${Y(hi)}"/>
+      <line class="grid" x1="${L}" x2="${W - R}" y1="${Y(lo)}" y2="${Y(lo)}"/>
+      <text class="ax" x="${L - 6}" y="${Y(hi) + 3.5}" text-anchor="end">${hi}</text>
+      <text class="ax" x="${L - 6}" y="${Y(lo) + 3.5}" text-anchor="end">${lo}</text>
+      <text class="ax" x="${L}" y="${H - 6}">${dShort(t0)}</text>
+      ${t1 !== t0 ? `<text class="ax" x="${W - R}" y="${H - 6}" text-anchor="end">${dShort(t1)}</text>` : ''}
+      <polyline class="ln" points="${xy.map(p => p.join(',')).join(' ')}"/>
+      ${pts.length <= 40 ? xy.map(p => `<circle class="mk" cx="${p[0]}" cy="${p[1]}" r="4"/>`).join('') : ''}
+      <line class="xh" x1="-20" x2="-20" y1="${T}" y2="${H - B}"/>
+      <circle class="hl" cx="-20" cy="-20" r="5"/>
+    </svg>
+  </div>`;
+}
+
+function progressCard() {
+  const p = S.programs[progP];
+  const since = progRange ? Date.now() - progRange * 86400000 : 0;
+  const ss = sessionsFor(progP).filter(s => +new Date(s.date) >= since);
+  const series = (item, kind) => ss.map(s => {
+    const x = (s[kind] || []).find(y => same(y, item));
+    return x && x.reps != null ? { t: +new Date(s.date), reps: x.reps, kg: +x.kg || 0 } : null;
+  }).filter(Boolean);
+  const segs = ['p1', 'p2', 'p3'].map(k =>
+    `<button class="seg${k === progP ? ' on' : ''}" style="--pc:var(--${k})" data-act="progP" data-p="${k}">${esc(S.programs[k].name)}</button>`).join('');
+  const chips = [[7, '1W'], [14, '2W'], [30, '1M'], [90, '3M'], [0, 'All']].map(([d, l]) =>
+    `<button class="chip${d === progRange ? ' on' : ''}" data-act="progRange" data-d="${d}">${l}</button>`).join('');
+  return `
+    <section class="card" style="--pc:var(--${progP})">
+      <h2>Progress</h2>
+      <div class="segs">${segs}</div>
+      <div class="chips">${chips}</div>
+      ${p.exercises.map((e, i) => chart(`${progP}-e${i}`, e, series(e, 'exercises'))).join('')}
+      ${p.buyout.length ? `<div class="sub">Buy-out</div>` + p.buyout.map((b, i) => chart(`${progP}-b${i}`, b, series(b, 'buyout'))).join('') : ''}
+    </section>`;
+}
+
+// compare a workout with the previous one of the same program: green up, grey same, yellow down
+function changeBadge(h, idx) {
+  let prev = null;
+  for (let j = idx - 1; j >= 0; j--) if (S.history[j].program === h.program) { prev = S.history[j]; break; }
+  if (!prev) return '';
+  const sum = (s, f) => s.exercises.reduce((t, e) => t + (+e[f] || 0), 0);
+  return badge(Math.round((sum(h, 'kg') - sum(prev, 'kg')) * 100) / 100, sum(h, 'reps') - sum(prev, 'reps'));
+}
+
+// what was done in one workout (history details and the calendar pop-up)
+function sessionBody(h) {
+  const x = h.extra;
+  return `${h.rounds} rounds · ${fmt(h.durationMs)} min
+    ${h.progressed ? `<br>↑ ${esc(h.progressed.name)}: ${h.progressed.from} → ${h.progressed.to} reps` : ''}
+    <br>${h.exercises.map(e => {
+      const miss = e.target && e.reps < e.target;
+      return `<span${miss ? ' class="miss"' : ''}>${e.reps ?? '–'}${miss ? `/${e.target}` : ''}× ${esc(e.name)}</span>${e.kg ? ` (${+e.kg} kg)` : ''}`;
+    }).join('<br>')}
+    ${(h.buyout || []).length ? `<br>Buy-out: ${h.buyout.map(b => `${esc(b.name)} ${b.reps ?? '–'} reps`).join(', ')}` : ''}
+    ${x ? `<br><span class="xtra">●</span> ${esc(S.programs.p3.name)}: ${x.rounds} of ${EXTRA_MAX} rounds${x.progressed ? ` · ↑ ${esc(x.progressed.name)} ${x.progressed.from} → ${x.progressed.to}` : ''}` : ''}`;
+}
+
+function openDay(key) {
+  const list = S.history.map((h, idx) => [h, idx]).filter(([h]) => dayKey(new Date(h.date)) === key);
+  if (!list.length) return;
+  const d = new Date(list[0][0].date);
+  $('#pop-card').innerHTML = `
+    <div class="row"><h2 style="margin:0">${d.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })}</h2>
+      <button class="ibr" data-act="closePop" aria-label="Close">✕</button></div>
+    ${list.map(([h, idx]) => `
+      <div class="hist">
+        <div class="row"><span><span class="pill" style="background:var(--${h.program})"></span><b>${esc(h.name)}</b>
+          <span class="muted"><small> · ${new Date(h.date).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</small></span></span>
+          ${changeBadge(h, idx)}</div>
+        <div class="body">${sessionBody(h)}</div>
+      </div>`).join('')}`;
+  $('#pop').hidden = false;
+}
+
+function renderStats() {
+  const hist = S.history.map((h, idx) => {
+    const ed = editHist === h.id;
+    const heInput = (k, i, f, v) => `<input type="number" inputmode="${f === 'kg' ? 'decimal' : 'numeric'}" min="0" placeholder="${f === 'kg' ? 'kg' : 'reps'}" data-he="${h.id}" data-k="${k}" data-i="${i}" data-f="${f}" value="${v ?? ''}" aria-label="${f === 'kg' ? 'kg used' : 'Reps done'}">`;
+    const heRow = (k, x, i, label) => `<div class="he">${heInput(k, i, 'reps', x.reps)}${heInput(k, i, 'kg', x.kg || '')}<span>${label}</span></div>`;
+    const x = h.extra;
+    const body = ed
+      ? `<div class="meta">reps · kg</div>` +
+        h.exercises.map((e, i) => heRow('exercises', e, i, `${esc(e.name)}${e.target ? ` <small>(goal ${e.target})</small>` : ''}`)).join('') +
+        (h.buyout || []).map((b, i) => heRow('buyout', b, i, `${esc(b.name)} <small>(buy-out)</small>`)).join('')
+      : sessionBody(h);
+    return `
+    <details class="hist"${openHist === h.id ? ' open' : ''}>
+      <summary><span class="pill" style="background:var(--${h.program})"></span>
+        <span class="when"><b>${esc(h.name)}</b>${x ? ' <span class="xtra">●</span>' : ''}<span class="muted"><small> · ${dateTxt(h.date)}</small></span></span>
+        ${changeBadge(h, idx)}</summary>
+      <div class="body">${body}</div>
+      <button class="edit" data-act="editHist" data-id="${h.id}">${ed ? 'Done' : 'Edit reps'}</button>
+      ${ed ? '' : `<button class="del" data-act="del" data-id="${h.id}">Delete</button>`}
+    </details>`;
+  }).reverse().join('');
+
+  $('#view-stats').innerHTML = `
+    <section class="card"><h2>Last 5 weeks</h2>${calendar()}</section>
+    ${progressCard()}
+    <section class="card"><h2>History</h2>${hist || '<div class="muted">No workouts yet.</div>'}</section>`;
+}
+
+// ---------- render: settings ----------
 function stepper(pid, list, i, field, val, unit, step) {
   const attrs = `data-act="step" data-p="${pid}" data-l="${list}" data-i="${i}" data-f="${field}"`;
   return `<div class="stp"><button ${attrs} data-d="${-step}" aria-label="decrease">−</button>
@@ -468,7 +640,7 @@ function stepper(pid, list, i, field, val, unit, step) {
 
 function programCard(pid) {
   const p = S.programs[pid];
-  const sessions = S.history.filter(h => h.program === pid);
+  const sessions = sessionsFor(pid);
   const n = (p.nextUp || 0) % (p.exercises.length || 1);
   const ed = editing === pid;
   const nameInput = (list, i, name) => {
@@ -499,143 +671,36 @@ function programCard(pid) {
   }).join('');
   return `
     <section class="card" style="border-top:4px solid var(--${pid})">
-      <details ${pid !== 'p3' ? 'open' : ''}>
-        <summary class="row"><h2 style="margin:0">${esc(p.name)} <span class="chev">›</span></h2><span class="muted"><small>done ${sessions.length}×</small></span></summary>
+      <details>
+        <summary class="row"><h2 style="margin:0">${esc(p.name)}${pid === 'p3' ? ' <span class="tag">extra</span>' : ''} <span class="chev">›</span></h2><span class="muted"><small>done ${sessions.length}×</small></span></summary>
         <div class="row">
           <div class="meta">${ed ? 'Rename, reorder, add or remove, then tap Done.' : 'Tap an exercise name to choose which one gets +1 rep next.'}</div>
           <button class="btn" style="padding:8px 14px;flex:none" data-act="editNames" data-p="${pid}">${ed ? 'Done' : 'Edit'}</button>
         </div>
         ${rows}
         ${ed ? `<button class="btn block" data-act="addEx" data-p="${pid}" data-l="exercises">+ Add exercise</button>` : ''}
-        ${p.buyout.length || ed ? `<div class="sub">Buy-out</div>${bos}` : ''}
-        ${ed ? `<button class="btn block" data-act="addEx" data-p="${pid}" data-l="buyout">+ Add buy-out</button>` : ''}
+        ${p.buyout.length || (ed && pid !== 'p3') ? `<div class="sub">Buy-out</div>${bos}` : ''}
+        ${ed && pid !== 'p3' ? `<button class="btn block" data-act="addEx" data-p="${pid}" data-l="buyout">+ Add buy-out</button>` : ''}
       </details>
     </section>`;
 }
 
-function sparkline(vals) {
-  if (vals.length < 2) return '';
-  const lo = Math.min(...vals), hi = Math.max(...vals), span = hi - lo || 1;
-  const pts = vals.map((v, i) => `${(i / (vals.length - 1)) * 60 + 2},${hi === lo ? 14 : 26 - ((v - lo) / span) * 24}`).join(' ');
-  return `<svg viewBox="0 0 64 28"><polyline points="${pts}"/></svg>`;
-}
-
-function trend(item, logged) {
-  const pts = logged.filter(x => x && x.reps != null);
-  const name = `<b>${esc(item.name)}</b>`;
-  if (!pts.length) return `<div class="trend"><div class="tn">${name}<div class="tv">No data in this period</div></div></div>`;
-  const a = pts[0], z = pts[pts.length - 1];
-  const val = x => `${x.reps} reps${x.kg ? ` × ${+x.kg} kg` : ''}`;
-  const dReps = z.reps - a.reps, dKg = Math.round(((z.kg || 0) - (a.kg || 0)) * 100) / 100;
-  const dir = direction(dKg, dReps);
-  const cls = dir > 0 ? '' : dir < 0 ? ' neg' : ' zero';
-  return `<div class="trend">
-    <div class="tn">${name}
-      <div class="tv">${val(a)} → <b>${val(z)}</b></div>
-      <div class="dl${cls}">${changeText(dKg, dReps) || 'no change'}</div>
-    </div>
-    ${sparkline(pts.map(x => x.reps))}
-  </div>`;
-}
-
-function progressCard() {
-  const p = S.programs[progP];
-  const all = S.history.filter(h => h.program === progP);
-  const from = progFrom || (all.length ? dayKey(new Date(all[0].date)) : dayKey(new Date()));
-  const to = progTo || dayKey(new Date());
-  const ss = all.filter(h => { const k = dayKey(new Date(h.date)); return k >= from && k <= to; });
-  const segs = ['p1', 'p2', 'p3'].map(k =>
-    `<button class="seg${k === progP ? ' on' : ''}" style="--pc:var(--${k})" data-act="progP" data-p="${k}">${esc(S.programs[k].name)}</button>`).join('');
-  let body;
-  if (!ss.length) body = `<div class="muted" style="margin-top:12px">No ${esc(p.name)} workouts in this period.</div>`;
-  else body = `
-    <div class="meta" style="margin:12px 0 4px">${ss.length} workout${ss.length > 1 ? 's' : ''} · first ${dateShort(ss[0].date)}, last ${dateShort(ss[ss.length - 1].date)}</div>
-    ${p.exercises.map(e => trend(e, ss.map(s => s.exercises.find(x => same(x, e))))).join('')}
-    ${p.buyout.length ? `<div class="sub">Buy-out</div>` + p.buyout.map(b => trend(b, ss.map(s => (s.buyout || []).find(x => same(x, b))))).join('') : ''}`;
-  return `
-    <section class="card" style="--pc:var(--${progP})">
-      <h2>Progress</h2>
-      <div class="segs">${segs}</div>
-      <div class="dates">
-        <label>From<input type="date" data-pd="from" value="${from}" max="${to}"></label>
-        <label>To<input type="date" data-pd="to" value="${to}" min="${from}"></label>
-      </div>
-      ${body}
-    </section>`;
-}
-
-// compare a workout with the previous one of the same program: green up, grey same, yellow down
-function changeBadge(h, idx) {
-  let prev = null;
-  for (let j = idx - 1; j >= 0; j--) if (S.history[j].program === h.program) { prev = S.history[j]; break; }
-  if (!prev) return '';
-  const sum = (s, f) => s.exercises.reduce((t, e) => t + (+e[f] || 0), 0);
-  const dReps = sum(h, 'reps') - sum(prev, 'reps');
-  const dKg = Math.round((sum(h, 'kg') - sum(prev, 'kg')) * 100) / 100;
-  const dir = direction(dKg, dReps);
-  if (!dir) return `<span class="chg same">same</span>`;
-  return `<span class="chg ${dir > 0 ? 'up' : 'down'}">${changeText(dKg, dReps)}</span>`;
-}
-
-// kg decides first; reps only count when the kg is unchanged. 1 = up, -1 = down, 0 = same
-const direction = (dKg, dReps) => Math.sign(dKg) || Math.sign(dReps);
-function changeText(dKg, dReps) {
-  const sign = v => (v > 0 ? '+' : '') + v;
-  return [dKg && `${sign(dKg)} kg`, dReps && `${sign(dReps)} rep${Math.abs(dReps) === 1 ? '' : 's'}`].filter(Boolean).join(' · ');
-}
-
-function renderStats() {
-  const now = Date.now();
-  const within = d => S.history.filter(h => now - new Date(h.date) < d * 86400000).length;
-  const hist = S.history.map((h, idx) => {
-    const ed = editHist === h.id;
-    const heInput = (k, i, f, v) => `<input type="number" inputmode="${f === 'kg' ? 'decimal' : 'numeric'}" min="0" placeholder="${f === 'kg' ? 'kg' : 'reps'}" data-he="${h.id}" data-k="${k}" data-i="${i}" data-f="${f}" value="${v ?? ''}" aria-label="${f === 'kg' ? 'kg used' : 'Reps done'}">`;
-    const heRow = (k, x, i, label) => `<div class="he">${heInput(k, i, 'reps', x.reps)}${heInput(k, i, 'kg', x.kg || '')}<span>${label}</span></div>`;
-    const body = ed
-      ? `<div class="meta">reps · kg</div>` +
-        h.exercises.map((e, i) => heRow('exercises', e, i, `${esc(e.name)}${e.target ? ` <small>(goal ${e.target})</small>` : ''}`)).join('') +
-        (h.buyout || []).map((b, i) => heRow('buyout', b, i, `${esc(b.name)} <small>(buy-out)</small>`)).join('')
-      : `${h.rounds} rounds · ${fmt(h.durationMs)} min
-        ${h.progressed ? `<br>↑ ${esc(h.progressed.name)}: ${h.progressed.from} → ${h.progressed.to} reps` : ''}
-        <br>${h.exercises.map(e => {
-          const miss = e.target && e.reps < e.target;
-          return `<span${miss ? ' class="miss"' : ''}>${e.reps ?? '–'}${miss ? `/${e.target}` : ''}× ${esc(e.name)}</span>${e.kg ? ` (${+e.kg} kg)` : ''}`;
-        }).join('<br>')}
-        ${(h.buyout || []).length ? `<br>Buy-out: ${h.buyout.map(b => `${esc(b.name)} ${b.reps ?? '–'} reps`).join(', ')}` : ''}`;
-    return `
-    <details class="hist"${openHist === h.id ? ' open' : ''}>
-      <summary><span class="pill" style="background:var(--${h.program})"></span>
-        <span class="when"><b>${esc(h.name)}</b><span class="muted"><small> · ${dateTxt(h.date)}</small></span></span>
-        ${changeBadge(h, idx)}</summary>
-      <div class="body">${body}</div>
-      <button class="edit" data-act="editHist" data-id="${h.id}">${ed ? 'Done' : 'Edit reps'}</button>
-      ${ed ? '' : `<button class="del" data-act="del" data-id="${h.id}">Delete</button>`}
-    </details>`;
-  }).reverse().join('');
-
-  $('#view-stats').innerHTML = `
-    <div class="stats3">
-      <div class="stat"><b>${S.history.length}</b><span>workouts</span></div>
-      <div class="stat"><b>${within(7)}</b><span>last 7 days</span></div>
-      <div class="stat"><b>${within(30)}</b><span>last 30 days</span></div>
-    </div>
-    <section class="card"><h2>Last 5 weeks</h2>${calendar()}</section>
-    ${progressCard()}
+function renderSettings() {
+  const cur = ensureActive().program;
+  $('#view-settings').innerHTML = `
+    <section class="card">
+      <h2>Today's program</h2>
+      <div class="segs" style="margin:0">${MAIN.map(k =>
+        `<button class="seg${k === cur ? ' on' : ''}" style="--pc:var(--${k})" data-act="setProgram" data-p="${k}">${esc(S.programs[k].name)}</button>`).join('')}</div>
+      <div class="meta">Switches automatically after each workout.</div>
+    </section>
     <section class="card row">
-      <div><div class="eyebrow" style="--pc:var(--${S.nextMain})">Up next</div><b>${esc(S.programs[S.nextMain].name)}</b></div>
-      <button class="btn" data-act="swapNext">Switch</button>
+      <span>Round time</span>
+      <div class="stp"><button data-act="roundMin" data-d="-0.5" aria-label="decrease">−</button>
+        <span>${S.roundMin || 6}<small>min</small></span>
+        <button data-act="roundMin" data-d="0.5" aria-label="increase">+</button></div>
     </section>
     ${['p1', 'p2', 'p3'].map(programCard).join('')}
-    <section class="card"><h2>History</h2>${hist || '<div class="muted">No workouts yet.</div>'}</section>
-    <section class="card">
-      <h2>Settings</h2>
-      <div class="row">
-        <span>Round time</span>
-        <div class="stp"><button data-act="roundMin" data-d="-0.5" aria-label="decrease">−</button>
-          <span>${S.roundMin || 6}<small>min</small></span>
-          <button data-act="roundMin" data-d="0.5" aria-label="increase">+</button></div>
-      </div>
-    </section>
     <section class="card">
       <h2>Backup</h2>
       <div class="meta" style="margin-top:0">Your data lives only on this phone. Export now and then to keep a copy.</div>
@@ -644,15 +709,16 @@ function renderStats() {
         <button class="btn" style="flex:1" data-act="import">Import</button>
       </div>
     </section>`;
+  // keep the program card that's being edited open across re-renders
+  if (editing) document.querySelectorAll('#view-settings details')[['p1', 'p2', 'p3'].indexOf(editing)].open = true;
 }
 
 function render() {
-  $('#view-today').hidden = tab !== 'today';
-  $('#view-stats').hidden = tab !== 'stats';
-  $('#switch').innerHTML = tab === 'today'
-    ? `<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Stats`
-    : `<svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>Today`;
-  if (tab === 'today') renderToday(); else renderStats();
+  VIEWS.forEach(v => { $('#view-' + v).hidden = tab !== v; });
+  document.querySelectorAll('.bnav button').forEach(b => b.classList.toggle('on', b.dataset.t === tab));
+  if (tab === 'today') renderToday();
+  else if (tab === 'stats') renderStats();
+  else renderSettings();
 }
 
 function kgUsed(a, x) {
@@ -664,16 +730,10 @@ function kgUsed(a, x) {
 
 // ---------- actions ----------
 const actions = {
-  tab() {
-    tab = tab === 'today' ? 'stats' : 'today';
+  tab(d) {
+    tab = d.t;
     try { localStorage.setItem('wt-tab', tab); } catch (e) {}
     render(); window.scrollTo(0, 0);
-  },
-  start(d, btn, ev) {
-    ev.preventDefault(); // don't toggle <details> when the button sits in a summary
-    ensureAudio();
-    S.active = { program: d.p, startedAt: Date.now(), acc: 0, runSince: null, firstStart: null, lastDone: 0, buyout: {}, done: {} };
-    save(); keepAwake(); render();
   },
   pause() {
     const a = S.active;
@@ -686,12 +746,17 @@ const actions = {
   roundPlus() { setElapsed(S.active, elapsed(S.active) + roundMs()); save(); tick(); },
   roundMinus() { setElapsed(S.active, elapsed(S.active) - roundMs()); save(); tick(); },
   restartRound() { const e = elapsed(S.active); setElapsed(S.active, e - e % roundMs()); save(); tick(); },
+  extra(d) {
+    const a = S.active, n = +d.n;
+    a.extra = (a.extra || 0) === n ? n - 1 : n; // tapping the last filled dot takes it away again
+    save(); render();
+  },
   finish() {
-    const a = S.active, p = S.programs[a.program];
+    const a = S.active, p = S.programs[a.program], p3 = S.programs.p3;
     const e = elapsed(a), rounds = Math.floor(e / roundMs());
     if (rounds < TARGET && !confirm(`Only ${rounds} of ${TARGET} rounds completed. Save anyway?`)) return;
     const session = {
-      id: uid(), date: new Date(firstStart(a) || a.startedAt).toISOString(), program: a.program, name: p.name,
+      id: uid(), date: new Date(firstStart(a) || Date.now()).toISOString(), program: a.program, name: p.name,
       rounds, durationMs: totalTime(a),
       exercises: p.exercises.map(x => {
         const v = parseInt((a.done || {})[x.id], 10);
@@ -701,12 +766,17 @@ const actions = {
         const v = parseInt(a.buyout[b.id], 10);
         return { id: b.id, name: b.name, kg: kgUsed(a, b), reps: isNaN(v) ? null : v };
       }),
+      extra: a.program !== 'p3' && a.extra ? {
+        rounds: a.extra,
+        exercises: p3.exercises.map(x => ({ id: x.id, name: x.name, reps: x.reps, target: x.reps, kg: x.kg })),
+      } : null,
     };
     // the exercise due for +1 only goes up if all its reps were done; otherwise it gets another try next time
     const nx = p.exercises[(p.nextUp || 0) % (p.exercises.length || 1)];
     const nxDone = nx && session.exercises.find(x => x.id === nx.id);
     const missed = nxDone && nxDone.reps < nxDone.target;
     session.progressed = missed ? null : progress(p);
+    if (session.extra) session.extra.progressed = progress(p3);
     S.history.push(session);
     if (MAIN.includes(a.program)) S.nextMain = other(a.program);
     S.active = null;
@@ -715,10 +785,17 @@ const actions = {
       : session.progressed ? `Saved! ${session.progressed.name} is now ${session.progressed.to} reps` : 'Workout saved!');
   },
   cancel() {
-    if (!confirm('Cancel this workout? Nothing will be saved.')) return;
+    if (!confirm('Reset this workout? The timer and anything you typed will be cleared.')) return;
     S.active = null; save(); releaseAwake(); render();
   },
-  swapNext() { S.nextMain = other(S.nextMain); save(); render(); },
+  setProgram(d) {
+    const a = ensureActive();
+    if (a.program === d.p) return;
+    if (firstStart(a) && !confirm(`You've started ${S.programs[a.program].name}. Switch and clear it?`)) return;
+    S.nextMain = d.p;
+    S.active = newActive(d.p);
+    save(); releaseAwake(); render();
+  },
   step(d) {
     const item = S.programs[d.p][d.l][+d.i];
     const min = d.f === 'reps' ? 1 : 0;
@@ -755,6 +832,7 @@ const actions = {
     save(); render();
   },
   progP(d) { progP = d.p; render(); },
+  progRange(d) { progRange = +d.d; render(); },
   roundMin(d) {
     S.roundMin = Math.min(30, Math.max(0.5, (S.roundMin || 6) + parseFloat(d.d)));
     if (S.active) S.active.lastDone = Math.floor(elapsed(S.active) / roundMs()); // no false round alarm
@@ -775,6 +853,9 @@ const actions = {
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   },
   import() { $('#importFile').click(); },
+  day(d) { openDay(d.k); },
+  closePop() { $('#pop').hidden = true; },
+  noop() {}, // taps inside the pop-up shouldn't close it
 };
 
 document.addEventListener('click', ev => {
@@ -783,9 +864,8 @@ document.addEventListener('click', ev => {
   if (b && actions[b.dataset.act]) actions[b.dataset.act](b.dataset, b, ev);
 });
 document.addEventListener('input', ev => {
-  const id = ev.target.dataset.bo;
-  if (id && S.active) { S.active.buyout[id] = ev.target.value; save(); }
   const t = ev.target.dataset;
+  if (t.bo && S.active) { S.active.buyout[t.bo] = ev.target.value; save(); }
   if (t.done && S.active) {
     (S.active.done = S.active.done || {})[t.done] = ev.target.value;
     ev.target.classList.toggle('miss', ev.target.value !== '' && +ev.target.value < +t.target);
@@ -809,12 +889,32 @@ document.addEventListener('input', ev => {
   }
   if (t.rn) { S.programs[t.rn][t.l][+t.i].name = ev.target.value; save(); }
 });
-document.addEventListener('change', ev => {
-  const which = ev.target.dataset.pd;
-  if (!which) return;
-  if (which === 'from') progFrom = ev.target.value; else progTo = ev.target.value;
-  render();
-});
+
+// chart readout: hover (or tap) shows the nearest workout's value
+function chartPoint(ev) {
+  const svg = ev.target.closest && ev.target.closest('svg.chart');
+  const pts = svg && charts[svg.dataset.key];
+  if (!pts) return;
+  const r = svg.getBoundingClientRect();
+  const vx = (ev.clientX - r.left) / r.width * svg.viewBox.baseVal.width;
+  const best = pts.reduce((b, p) => Math.abs(p.x - vx) < Math.abs(b.x - vx) ? p : b);
+  const xh = svg.querySelector('.xh'), hl = svg.querySelector('.hl');
+  xh.setAttribute('x1', best.x); xh.setAttribute('x2', best.x);
+  hl.setAttribute('cx', best.x); hl.setAttribute('cy', best.y);
+  $('#cv-' + svg.dataset.key).textContent = best.text;
+}
+function chartLeave(ev) {
+  if (ev.pointerType === 'touch' || !ev.target.matches || !ev.target.matches('svg.chart')) return; // taps keep their readout
+  const svg = ev.target;
+  svg.querySelector('.xh').setAttribute('x1', -20); svg.querySelector('.xh').setAttribute('x2', -20);
+  svg.querySelector('.hl').setAttribute('cx', -20);
+  const cv = $('#cv-' + svg.dataset.key);
+  cv.textContent = cv.dataset.def;
+}
+document.addEventListener('pointermove', chartPoint);
+document.addEventListener('pointerdown', chartPoint);
+document.addEventListener('pointerleave', chartLeave, true);
+
 $('#importFile').addEventListener('change', async ev => {
   const f = ev.target.files[0];
   ev.target.value = '';
@@ -823,7 +923,7 @@ $('#importFile').addEventListener('change', async ev => {
     const data = JSON.parse(await f.text());
     if (!data.programs || !Array.isArray(data.history)) throw new Error();
     if (!confirm(`Replace all current data with this backup (${data.history.length} workouts)?`)) return;
-    S = data; save(); render(); toast('Backup imported');
+    S = migrate(data); save(); render(); toast('Backup imported');
   } catch (e) { alert('That file is not a valid backup.'); }
 });
 
