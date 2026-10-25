@@ -17,7 +17,7 @@
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; background: var(--bg); color: var(--text);
     font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  main { max-width: 560px; margin: 0 auto; padding: 16px 16px 8px; }
+  main { max-width: 560px; margin: 0 auto; padding: 16px 16px calc(80px + env(safe-area-inset-bottom)); }
   h2 { font-size: 17px; margin: 0 0 10px; }
   button { font: inherit; color: inherit; cursor: pointer; }
   .muted { color: var(--muted); }
@@ -97,6 +97,16 @@
   .xdot { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line); background: var(--card2); padding: 0; }
   .xdot.on { background: var(--good); border-color: var(--good); }
   .xsum { font-size: 14px; color: var(--muted); margin-top: 8px; }
+  .xt { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+  .xt .chips { flex: 1; gap: 4px; }
+  .xt .chip { padding: 6px 0; }
+  .xclock { display: flex; flex-direction: column; align-items: center; min-width: 80px; padding: 5px 10px; border-radius: 12px;
+    border: 1px solid var(--line); background: var(--card2); }
+  .xclock.run { border-color: var(--p3); }
+  #x-time { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.2; }
+  #x-sub { font-size: 11px; color: var(--muted); }
+  .xbar { height: 4px; border-radius: 2px; background: var(--card2); margin-top: 10px; overflow: hidden; }
+  .xbar i { display: block; height: 100%; width: 0; background: var(--p3); transition: width .25s linear; }
 
   /* calendar */
   .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
@@ -124,6 +134,7 @@
   .cv { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; margin: 2px 0 4px; min-height: 1.4em; }
   svg.chart { display: block; width: 100%; height: auto; touch-action: pan-y; }
   svg.chart .grid { stroke: var(--line); stroke-width: 1; stroke-dasharray: 3 3; }
+  svg.chart .tk { stroke: var(--muted); stroke-width: 1; opacity: .5; }
   svg.chart .ax { fill: var(--muted); font-size: 10px; font-family: inherit; }
   svg.chart .ln { fill: none; stroke: var(--pc); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
   svg.chart .mk { fill: var(--pc); stroke: var(--card); stroke-width: 2; }
@@ -143,6 +154,10 @@
   .stp button { width: 44px; height: 42px; border: 0; background: none; font-size: 22px; color: var(--accent); }
   .stp span { min-width: 64px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
   .stp small { color: var(--muted); font-weight: 500; margin-left: 3px; }
+  .tgl { flex: none; width: 52px; height: 30px; border-radius: 99px; border: 0; background: var(--line); padding: 3px; position: relative; transition: background .2s; }
+  .tgl i { display: block; width: 24px; height: 24px; border-radius: 50%; background: var(--text); transition: transform .2s; }
+  .tgl.on { background: var(--good); }
+  .tgl.on i { transform: translateX(22px); }
   .meta { font-size: 13px; color: var(--muted); margin-top: 6px; }
   .nmrow { display: flex; gap: 6px; margin-bottom: 8px; }
   .nmrow .nm { margin-bottom: 0; flex: 1; min-width: 0; }
@@ -171,12 +186,29 @@
   .he input { width: 64px; font: inherit; text-align: center; padding: 6px; border-radius: 8px;
     border: 1px solid var(--line); background: var(--card2); color: var(--text); }
 
-  /* bottom navigation: part of the page, not stuck to the screen */
-  .bnav { max-width: 560px; margin: 4px auto calc(24px + env(safe-area-inset-bottom)); padding: 0 16px; display: flex; gap: 8px; }
-  .bnav button { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 11px 6px;
-    border-radius: 99px; font-weight: 700; font-size: 14px; border: 1px solid var(--line); background: var(--card2); color: var(--muted); }
-  .bnav button.on { color: var(--text); border-color: var(--muted); }
-  .bnav svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  /* tab bar fixed to the bottom of the screen */
+  .bnav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: flex; background: rgba(15,18,22,.96);
+    border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom); backdrop-filter: blur(8px); }
+  .bnav button { flex: 1; background: none; border: 0; color: var(--muted); padding: 9px 0 11px; font-size: 12px; font-weight: 600;
+    display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .bnav button.on { color: var(--accent); }
+  .bnav svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* focus mode: only the timer, as big as the screen allows */
+  .fbtn { position: absolute; top: 10px; right: 10px; }
+  body.focus #view-today > :not(.tcard), body.focus .bnav { display: none; }
+  body.focus main { padding-bottom: 16px; }
+  body.focus .tcard { margin: 0; min-height: calc(100dvh - 32px); display: flex; align-items: center; justify-content: center; }
+  body.focus .ring { width: min(80vw, 66dvh, 560px); }
+  body.focus #t-time { font-size: min(22vw, 14dvh, 140px); }
+  body.focus #t-sub { font-size: 16px; }
+  body.focus .dots { gap: 10px; margin-top: 14px; }
+  body.focus .dot { width: 16px; height: 16px; }
+  body.focus .ttotal { font-size: 16px; }
+  body.focus .ttotal svg { width: 17px; height: 17px; }
+  body.focus .ibr { width: 48px; height: 48px; font-size: 15px; }
+  body.focus .ibr svg { width: 20px; height: 20px; }
+  body.focus .tools { gap: 12px; bottom: 14px; }
 
   .cal-d[data-act] { cursor: pointer; }
   .pop { position: fixed; inset: 0; z-index: 10; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; padding: 16px; }
@@ -185,7 +217,7 @@
     border: 1px solid var(--line); border-radius: 18px; padding: 16px; cursor: default; }
   .pop-card .hist .body { padding-left: 18px; }
 
-  #toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(20px);
+  #toast { position: fixed; z-index: 6; left: 50%; bottom: calc(80px + env(safe-area-inset-bottom)); transform: translateX(-50%) translateY(20px);
     background: var(--text); color: var(--bg); padding: 12px 18px; border-radius: 14px; font-weight: 600; opacity: 0;
     transition: .25s; pointer-events: none; max-width: calc(100% - 32px); text-align: center; }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -218,7 +250,7 @@ const ex = (name, reps, kg = 0) => ({ id: uid(), name, reps, kg });
 
 function defaultState() {
   return {
-    v: 2,
+    v: 3,
     nextMain: 'p1',
     programs: {
       p1: { name: 'Program 1', nextUp: 0,
@@ -226,9 +258,9 @@ function defaultState() {
         buyout: [ex('Bicep curl', 0, 10), ex('Tricep pull', 0)] },
       p2: { name: 'Program 2', nextUp: 0,
         exercises: [ex('Deadlift', 12, 50), ex('Pull ups', 7), ex('Ab roll out', 12), ex('Back pull', 16), ex('Crunches', 16)],
-        buyout: [ex('Crunches', 0)] },
+        buyout: [ex('Crunches', 0), ex('Placeholder', 0)] },
       p3: { name: 'Program 3', nextUp: 0,
-        exercises: [ex('Calf raises', 16, 15), ex('Shoulder raises', 12, 22.5), ex('Calf raises, 1 foot', 16, 15), ex('Shoulder press', 12, 15), ex('Placeholder', 12)],
+        exercises: [ex('Calf raises', 16, 15), ex('Shoulder tug', 12), ex('Shoulder press', 12, 15), ex('Placeholder', 12), ex('Placeholder', 12)],
         buyout: [] },
     },
     history: [],
@@ -245,6 +277,18 @@ function load() {
 }
 function migrate(s) {
   if ((s.v || 1) < 2) { s.programs.p3.exercises.push(ex('Placeholder', 12)); s.v = 2; }
+  if (s.v < 3) {
+    const { p2, p3 } = s.programs;
+    if (!p2.buyout.some(b => b.name === 'Placeholder')) p2.buyout.push(ex('Placeholder', 0));
+    // only rework program 3 if it's still the original list (don't overwrite own edits);
+    // calf raises, shoulder press and the placeholder keep their history
+    const names = p3.exercises.map(e => e.name).join('|');
+    if (names === 'Calf raises|Shoulder raises|Calf raises, 1 foot|Shoulder press|Placeholder') {
+      const [calf, , , press, ph] = p3.exercises;
+      keepNext(p3, () => { p3.exercises = [calf, ex('Shoulder tug', 12), press, ph, ex('Placeholder', 12)]; });
+    }
+    s.v = 3;
+  }
   return s;
 }
 function save() {
@@ -258,6 +302,7 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const pad = n => String(n).padStart(2, '0');
 const fmt = ms => { const t = Math.floor(ms / 1000); return `${Math.floor(t / 60)}:${pad(t % 60)}`; };
+const fmtDur = ms => { const m = Math.round(ms / 60000); return m >= 60 ? `${Math.floor(m / 60)} h ${pad(m % 60)} min` : `${m} min`; };
 const kgTxt = kg => kg ? `${+kg} kg` : '';
 const dayKey = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const dShort = t => new Date(t).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
@@ -268,6 +313,7 @@ const same = (x, e) => x && (x.id ? x.id === e.id : x.name === e.name);
 let editing = null;                    // program id whose exercises are being edited
 let progP = 'p1', progRange = 14;      // stats chart filters (range in days, 0 = all; 2 weeks by default)
 let editHist = null, openHist = null;  // history entry being edited / kept open
+let focus = (() => { try { return localStorage.getItem('wt-focus') === '1'; } catch (e) { return false; } })();
 
 function dateTxt(iso) {
   const d = new Date(iso);
@@ -307,8 +353,10 @@ let audio;
 function ensureAudio() {
   try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); } catch (e) {}
 }
+// vibration is off unless turned on in settings
+function vibrate(pattern) { if (S.vibrate && navigator.vibrate) navigator.vibrate(pattern); }
 function beep(freq = 880, dur = 0.15) {
-  if (!audio) return;
+  if (!audio || !S.sound) return; // sound is off unless turned on in settings
   try {
     const o = audio.createOscillator(), g = audio.createGain();
     o.frequency.value = freq; o.connect(g); g.connect(audio.destination);
@@ -320,20 +368,23 @@ function beep(freq = 880, dur = 0.15) {
 function roundAlert(done) {
   const final = done === TARGET;
   beep(final ? 1320 : 1046, final ? 0.8 : 0.5);
-  if (navigator.vibrate) navigator.vibrate(final ? [400, 150, 400, 150, 400] : [400, 150, 400]);
+  vibrate(final ? [400, 150, 400, 150, 400] : [400, 150, 400]);
   if (final) toast('4 rounds done! Time for the buy-out 💪');
 }
 
 let wakeLock = null;
 async function keepAwake() {
   try {
-    if ('wakeLock' in navigator && S.active && S.active.runSince && !wakeLock && document.visibilityState === 'visible') {
+    if ('wakeLock' in navigator && anyRunning() && !wakeLock && document.visibilityState === 'visible') {
       wakeLock = await navigator.wakeLock.request('screen');
       wakeLock.addEventListener('release', () => { wakeLock = null; });
     }
   } catch (e) {}
 }
 function releaseAwake() { try { wakeLock && wakeLock.release(); } catch (e) {} wakeLock = null; }
+// keep the screen on while the main timer or the extra timer is running
+const anyRunning = () => !!(S.active && (S.active.runSince || (S.active.xt && S.active.xt.runSince)));
+function syncAwake() { if (anyRunning()) keepAwake(); else releaseAwake(); }
 document.addEventListener('visibilitychange', keepAwake);
 
 let lastCountdown = null;
@@ -359,8 +410,29 @@ function tick() {
   $('#t-dots').innerHTML = Array.from({ length: TARGET }, (_, i) =>
     `<div class="dot ${i < done ? 'done' : i === done ? 'cur' : ''}"></div>`).join('');
   $('#t-sub').textContent = a.runSince ? '' : firstStart(a) ? 'Paused' : 'Tap to start';
+  tickExtra(a);
 }
 setInterval(tick, 250);
+
+// small interval timer for the program 3 extra rounds: counts up to 2–6 min, beeps, starts over
+const extraMs = () => (S.extraMin || 3) * 60 * 1000;
+const xElapsed = x => x.acc + (x.runSince ? Date.now() - x.runSince : 0);
+function tickExtra(a) {
+  const x = a.xt;
+  if (!x) return;
+  const e = xElapsed(x), done = Math.floor(e / extraMs()), within = e % extraMs();
+  if (done > (x.lastDone || 0)) {
+    x.lastDone = done; save();
+    beep(880, 0.5);
+    vibrate([300, 120, 300]);
+  }
+  const t = $('#x-time');
+  if (!t) return;
+  t.textContent = fmt(within);
+  $('#x-sub').textContent = x.runSince ? `interval ${done + 1}` : e ? 'Paused' : 'Start';
+  $('#x-bar').style.width = `${within / extraMs() * 100}%`;
+  $('#x-clock').classList.toggle('run', !!x.runSince);
+}
 
 // ---------- progression ----------
 function progress(p) {
@@ -421,6 +493,9 @@ function renderToday() {
   $('#view-today').innerHTML = `
     <section class="card tcard" style="--pc:var(--${a.program})">
       <div class="ttotal" aria-label="Total workout time"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg><span id="t-total">0:00</span></div>
+      <button class="ibr fbtn" data-act="focus" aria-label="${focus ? 'Leave focus mode' : 'Focus mode'}"><svg viewBox="0 0 24 24">${focus
+        ? '<path d="M9 4v5H4M15 4v5h5M15 20v-5h5M9 20v-5H4"/>'
+        : '<path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/>'}</svg></button>
       <div class="twrap">
         <div class="ring" data-act="pause" role="button" aria-label="Tap to start, pause or resume">
           <svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="45"/><circle id="t-bar" class="bar" cx="50" cy="50" r="45"/></svg>
@@ -453,6 +528,13 @@ function renderToday() {
         <div class="xr">${Array.from({ length: EXTRA_MAX }, (_, i) =>
           `<button class="xdot${xr > i ? ' on' : ''}" data-act="extra" data-n="${i + 1}" aria-label="${i + 1} extra round${i ? 's' : ''}"></button>`).join('')}</div>
       </div>
+      <div class="xt">
+        <div class="chips">${[2, 3, 4, 5, 6].map(m =>
+          `<button class="chip${m === (S.extraMin || 3) ? ' on' : ''}" data-act="xMin" data-m="${m}" aria-label="${m} minute intervals">${m}m</button>`).join('')}</div>
+        <button class="xclock" id="x-clock" data-act="xToggle" aria-label="Start or pause the extra timer">
+          <span id="x-time">0:00</span><small id="x-sub">Start</small></button>
+      </div>
+      <div class="xbar"><i id="x-bar"></i></div>
       <details${xr ? ' open' : ''}>
         <summary class="xsum">${xr ? `${xr} of ${EXTRA_MAX} rounds` : 'Tap a dot for each round you do'} · exercises <span class="chev">›</span></summary>
         ${exList(p3, 'p3')}
@@ -512,18 +594,20 @@ function badge(dKg, dReps) {
   return `<span class="chg ${dir > 0 ? 'up' : dir < 0 ? 'down' : 'same'}">${changeText(dKg, dReps) || 'same'}</span>`;
 }
 
-// one line chart per exercise: reps over time, x spaced by date
+// one line chart per exercise: reps over time. The x axis has a slot for every day in the range
+// (start0 = midnight of the first day, nDays slots), so points land on the day they were done.
 const charts = {}; // chart key → points, for the tap/hover readout
-function chart(key, item, pts) {
+function chart(key, item, pts, start0, nDays) {
   const val = x => `${x.reps} reps${x.kg ? ` · ${+x.kg} kg` : ''}`;
-  if (!pts.length) return `<div class="ch"><div class="chh"><b>${esc(item.name)}</b></div><div class="cv">No data yet</div></div>`;
+  if (!pts.length) return `<div class="ch"><div class="chh"><b>${esc(item.name)}</b></div><div class="cv">No data in this period</div></div>`;
   const W = 320, H = 96, L = 26, R = 10, T = 8, B = 22;
-  const t0 = pts[0].t, t1 = pts[pts.length - 1].t;
   let lo = Math.min(...pts.map(p => p.reps)), hi = Math.max(...pts.map(p => p.reps));
   if (lo === hi) { lo -= 1; hi += 1; }
-  const X = t => t1 === t0 ? (L + W - R) / 2 : L + (t - t0) / (t1 - t0) * (W - R - L);
+  const X = idx => L + (idx + 0.5) / nDays * (W - R - L);
   const Y = v => T + (hi - v) / (hi - lo) * (H - B - T);
-  const xy = pts.map(p => [+X(p.t).toFixed(1), +Y(p.reps).toFixed(1)]);
+  const xy = pts.map(p => [+X(p.day).toFixed(1), +Y(p.reps).toFixed(1)]);
+  const ticks = nDays <= 31 ? Array.from({ length: nDays }, (_, i) =>
+    `<line class="tk" x1="${X(i).toFixed(1)}" x2="${X(i).toFixed(1)}" y1="${H - B + 3}" y2="${H - B + 6}"/>`).join('') : '';
   // the line follows the reps; a point is green/red when the kg went up/down since the previous workout
   const kgStep = pts.map((p, i) => i ? Math.round((p.kg - pts[i - 1].kg) * 100) / 100 : 0);
   charts[key] = pts.map((p, i) => ({ x: xy[i][0], y: xy[i][1],
@@ -543,8 +627,9 @@ function chart(key, item, pts) {
       <line class="grid" x1="${L}" x2="${W - R}" y1="${Y(lo)}" y2="${Y(lo)}"/>
       <text class="ax" x="${L - 6}" y="${Y(hi) + 3.5}" text-anchor="end">${hi}</text>
       <text class="ax" x="${L - 6}" y="${Y(lo) + 3.5}" text-anchor="end">${lo}</text>
-      <text class="ax" x="${L}" y="${H - 6}">${dShort(t0)}</text>
-      ${t1 !== t0 ? `<text class="ax" x="${W - R}" y="${H - 6}" text-anchor="end">${dShort(t1)}</text>` : ''}
+      ${ticks}
+      <text class="ax" x="${L}" y="${H - 4}">${dShort(start0)}</text>
+      ${nDays > 1 ? `<text class="ax" x="${W - R}" y="${H - 4}" text-anchor="end">today</text>` : ''}
       <polyline class="ln" points="${xy.map(p => p.join(',')).join(' ')}"/>
       ${xy.map(marker).join('')}
       <line class="xh" x1="-20" x2="-20" y1="${T}" y2="${H - B}"/>
@@ -555,12 +640,23 @@ function chart(key, item, pts) {
 
 function progressCard() {
   const p = S.programs[progP];
-  const since = progRange ? Date.now() - progRange * 86400000 : 0;
-  const ss = sessionsFor(progP).filter(s => +new Date(s.date) >= since);
-  const series = (item, kind) => ss.map(s => {
-    const x = (s[kind] || []).find(y => same(y, item));
-    return x && x.reps != null ? { t: +new Date(s.date), reps: x.reps, kg: +x.kg || 0 } : null;
-  }).filter(Boolean);
+  const midnight = t => { const d = new Date(t); d.setHours(0, 0, 0, 0); return +d; };
+  const dayIdx = (t, from) => Math.round((midnight(t) - from) / 86400000); // round: DST days aren't 24 h
+  const all = sessionsFor(progP);
+  const today0 = midnight(Date.now());
+  const start0 = progRange ? today0 - (progRange - 1) * 86400000
+    : all.length ? midnight(Math.min(...all.map(s => +new Date(s.date)))) : today0;
+  const nDays = dayIdx(today0, start0) + 1;
+  const ss = all.filter(s => +new Date(s.date) >= start0);
+  // one point per day (the last workout that day)
+  const series = (item, kind) => {
+    const byDay = new Map();
+    ss.forEach(s => {
+      const x = (s[kind] || []).find(y => same(y, item));
+      if (x && x.reps != null) byDay.set(dayIdx(s.date, start0), { t: +new Date(s.date), reps: x.reps, kg: +x.kg || 0 });
+    });
+    return [...byDay].sort((a, b) => a[0] - b[0]).map(([day, p]) => ({ ...p, day }));
+  };
   const segs = ['p1', 'p2', 'p3'].map(k =>
     `<button class="seg${k === progP ? ' on' : ''}" style="--pc:var(--${k})" data-act="progP" data-p="${k}">${esc(S.programs[k].name)}</button>`).join('');
   const chips = [[7, '1W'], [14, '2W'], [30, '1M'], [90, '3M'], [0, 'All']].map(([d, l]) =>
@@ -571,8 +667,8 @@ function progressCard() {
       <div class="segs">${segs}</div>
       <div class="chips">${chips}</div>
       <div class="klegend"><span><i style="background:var(--good)"></i>kg went up</span><span><i style="background:var(--danger)"></i>kg went down</span></div>
-      ${p.exercises.map((e, i) => chart(`${progP}-e${i}`, e, series(e, 'exercises'))).join('')}
-      ${p.buyout.length ? `<div class="sub">Buy-out</div>` + p.buyout.map((b, i) => chart(`${progP}-b${i}`, b, series(b, 'buyout'))).join('') : ''}
+      ${p.exercises.map((e, i) => chart(`${progP}-e${i}`, e, series(e, 'exercises'), start0, nDays)).join('')}
+      ${p.buyout.length ? `<div class="sub">Buy-out</div>` + p.buyout.map((b, i) => chart(`${progP}-b${i}`, b, series(b, 'buyout'), start0, nDays)).join('') : ''}
     </section>`;
 }
 
@@ -588,7 +684,7 @@ function changeBadge(h, idx) {
 // what was done in one workout (history details and the calendar pop-up)
 function sessionBody(h) {
   const x = h.extra;
-  return `${h.rounds} rounds · ${fmt(h.durationMs)} min
+  return `${h.rounds} rounds · ${fmtDur(h.durationMs)}
     ${h.progressed ? `<br>↑ ${esc(h.progressed.name)}: ${h.progressed.from} → ${h.progressed.to} reps` : ''}
     <br>${h.exercises.map(e => {
       const miss = e.target && e.reps < e.target;
@@ -713,6 +809,14 @@ function renderSettings() {
         <span>${S.roundMin || 6}<small>min</small></span>
         <button data-act="roundMin" data-d="0.5" aria-label="increase">+</button></div>
     </section>
+    <section class="card row">
+      <div>Sound<div class="meta" style="margin-top:2px">Beeps at the end of each round.</div></div>
+      <button class="tgl${S.sound ? ' on' : ''}" data-act="sound" role="switch" aria-checked="${!!S.sound}" aria-label="Sound"><i></i></button>
+    </section>
+    <section class="card row">
+      <div>Vibration<div class="meta" style="margin-top:2px">Vibrates at the end of each round.</div></div>
+      <button class="tgl${S.vibrate ? ' on' : ''}" data-act="vibration" role="switch" aria-checked="${!!S.vibrate}" aria-label="Vibration"><i></i></button>
+    </section>
     ${['p1', 'p2', 'p3'].map(programCard).join('')}
     <section class="card">
       <h2>Backup</h2>
@@ -728,6 +832,7 @@ function renderSettings() {
 
 function render() {
   VIEWS.forEach(v => { $('#view-' + v).hidden = tab !== v; });
+  document.body.classList.toggle('focus', focus && tab === 'today');
   document.querySelectorAll('.bnav button').forEach(b => b.classList.toggle('on', b.dataset.t === tab));
   if (tab === 'today') renderToday();
   else if (tab === 'stats') renderStats();
@@ -750,7 +855,7 @@ const actions = {
   },
   pause() {
     const a = S.active;
-    if (a.runSince) { a.acc += Date.now() - a.runSince; a.runSince = null; releaseAwake(); }
+    if (a.runSince) { a.acc += Date.now() - a.runSince; a.runSince = null; syncAwake(); }
     else { ensureAudio(); a.runSince = Date.now(); a.firstStart = a.firstStart || a.runSince; keepAwake(); }
     save(); tick();
   },
@@ -759,6 +864,18 @@ const actions = {
   roundPlus() { setElapsed(S.active, elapsed(S.active) + roundMs()); save(); tick(); },
   roundMinus() { setElapsed(S.active, elapsed(S.active) - roundMs()); save(); tick(); },
   restartRound() { const e = elapsed(S.active); setElapsed(S.active, e - e % roundMs()); save(); tick(); },
+  xToggle() {
+    const x = S.active.xt = S.active.xt || { acc: 0, runSince: null, lastDone: 0 };
+    if (x.runSince) { x.acc += Date.now() - x.runSince; x.runSince = null; }
+    else { ensureAudio(); x.runSince = Date.now(); }
+    save(); syncAwake(); tick();
+  },
+  xMin(d) {
+    S.extraMin = +d.m;
+    const x = S.active && S.active.xt;
+    if (x) x.lastDone = Math.floor(xElapsed(x) / extraMs()); // no false beep when switching
+    save(); render();
+  },
   extra(d) {
     const a = S.active, n = +d.n;
     a.extra = (a.extra || 0) === n ? n - 1 : n; // tapping the last filled dot takes it away again
@@ -846,6 +963,18 @@ const actions = {
   },
   progP(d) { progP = d.p; render(); },
   progRange(d) { progRange = +d.d; render(); },
+  sound() {
+    S.sound = !S.sound;
+    save();
+    if (S.sound) { ensureAudio(); beep(880, 0.2); } // short test beep
+    render();
+  },
+  vibration() {
+    S.vibrate = !S.vibrate;
+    save();
+    vibrate(200); // short test buzz
+    render();
+  },
   roundMin(d) {
     S.roundMin = Math.min(30, Math.max(0.5, (S.roundMin || 6) + parseFloat(d.d)));
     if (S.active) S.active.lastDone = Math.floor(elapsed(S.active) / roundMs()); // no false round alarm
@@ -866,6 +995,11 @@ const actions = {
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   },
   import() { $('#importFile').click(); },
+  focus() {
+    focus = !focus;
+    try { localStorage.setItem('wt-focus', focus ? '1' : '0'); } catch (e) {}
+    render(); window.scrollTo(0, 0);
+  },
   day(d) { openDay(d.k); },
   closePop() { $('#pop').hidden = true; },
   noop() {}, // taps inside the pop-up shouldn't close it
@@ -940,7 +1074,7 @@ $('#importFile').addEventListener('change', async ev => {
   } catch (e) { alert('That file is not a valid backup.'); }
 });
 
-if (S.active && S.active.runSince) keepAwake();
+if (anyRunning()) keepAwake();
 render();
 
 // ask the browser not to evict our data when the phone is low on space
