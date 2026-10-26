@@ -787,8 +787,7 @@ function programCard(pid) {
       <details>
         <summary class="row"><h2 style="margin:0">${esc(p.name)}${pid === 'p3' ? ' <span class="tag">extra</span>' : ''} <span class="chev">›</span></h2><span class="muted"><small>done ${sessions.length}×</small></span></summary>
         <div class="row">
-          <div class="meta">${ed ? 'Change reps and kg, rename, reorder, add or remove, then tap Done.'
-            : 'Tap an exercise to choose which one gets +1 rep next. Tap Edit to change reps, kg or names.'}</div>
+          <div class="meta">${ed ? 'Change reps and kg, rename, reorder, add or remove, then tap Done.' : ''}</div>
           <button class="btn" style="padding:8px 14px;flex:none" data-act="editNames" data-p="${pid}">${ed ? 'Done' : 'Edit'}</button>
         </div>
         ${rows}
