@@ -93,20 +93,12 @@
   input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 
   /* extra rounds (program 3) */
-  .xr { display: flex; gap: 8px; }
-  .xdot { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--line); background: var(--card2); padding: 0; }
-  .xdot.on { background: var(--good); border-color: var(--good); }
-  .xsum { font-size: 14px; color: var(--muted); margin-top: 8px; }
-  .xt { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
-  .xt .chips { flex: 1; gap: 4px; }
-  .xt .chip { padding: 6px 0; }
-  .xclock { display: flex; flex-direction: column; align-items: center; min-width: 80px; padding: 5px 10px; border-radius: 12px;
-    border: 1px solid var(--line); background: var(--card2); }
-  .xclock.run { border-color: var(--p3); }
-  #x-time { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.2; }
-  #x-sub { font-size: 11px; color: var(--muted); }
-  .xbar { height: 4px; border-radius: 2px; background: var(--card2); margin-top: 10px; overflow: hidden; }
-  .xbar i { display: block; height: 100%; width: 0; background: var(--p3); transition: width .25s linear; }
+  .xsum { font-size: 14px; color: var(--muted); margin-top: 10px; }
+  #x-dots { margin: 0; }
+  #x-dots .dot { width: 14px; height: 14px; }
+  .tlabel { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--pc); margin-bottom: 4px;
+    pointer-events: none; }
+  .ibr.mark.on { background: var(--good); border-color: var(--good); color: #fff; }
 
   /* calendar */
   .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
@@ -313,6 +305,7 @@ const same = (x, e) => x && (x.id ? x.id === e.id : x.name === e.name);
 let editing = null;                    // program id whose exercises are being edited
 let progP = 'p1', progRange = 14;      // stats chart filters (range in days, 0 = all; 2 weeks by default)
 let editHist = null, openHist = null;  // history entry being edited / kept open
+let xOpen = false;                     // program 3 card on the Today tab: folded unless opened (or in use)
 let focus = (() => { try { return localStorage.getItem('wt-focus') === '1'; } catch (e) { return false; } })();
 
 function dateTxt(iso) {
@@ -337,16 +330,32 @@ function ensureActive() {
 }
 
 // ---------- timer ----------
-const elapsed = a => a.acc + (a.runSince ? Date.now() - a.runSince : 0);
-// total workout time is plain wall-clock time since the first tap on the timer:
+// Two timers share the big clock: the main program's (its fields live on the workout itself)
+// and the program 3 extra's (a.xt). Both have acc/runSince/lastDone/marked; a.mode says which is shown.
+const extraMs = () => (S.extraMin || 3) * 60 * 1000;
+const newTimer = () => ({ acc: 0, runSince: null, lastDone: 0, marked: 0 });
+function timers(a) {
+  a.xt = a.xt || newTimer();
+  return {
+    main: { t: a, len: roundMs(), target: TARGET, pc: a.program, label: '' },
+    extra: { t: a.xt, len: extraMs(), target: EXTRA_MAX, pc: 'p3', label: S.programs.p3.name },
+  };
+}
+const cur = a => timers(a)[a.mode === 'extra' ? 'extra' : 'main'];
+const elapsed = t => t.acc + (t.runSince ? Date.now() - t.runSince : 0);
+// rounds finished: by the clock, or marked done early with ✓ (the clock still runs to the limit)
+const roundsDone = (t, len) => Math.max(Math.floor(elapsed(t) / len), t.marked || 0);
+const extraRounds = a => Math.min(EXTRA_MAX, Math.max(a.extra || 0, a.xt ? roundsDone(a.xt, extraMs()) : 0));
+// total workout time is plain wall-clock time since the first tap on a timer:
 // pausing and the +/- buttons don't affect it
 // (workouts started before this existed have no firstStart field: fall back to startedAt)
 const firstStart = a => 'firstStart' in a ? a.firstStart : a.startedAt;
 const totalTime = a => firstStart(a) ? Date.now() - firstStart(a) : 0;
-function setElapsed(a, ms) {
-  a.acc = Math.max(0, ms);
-  if (a.runSince) a.runSince = Date.now();
-  a.lastDone = Math.floor(a.acc / roundMs());
+function setElapsed(t, ms, len) {
+  t.acc = Math.max(0, ms);
+  if (t.runSince) t.runSince = Date.now();
+  t.lastDone = Math.floor(t.acc / len);
+  t.marked = Math.min(t.marked || 0, t.lastDone + 1); // stepping back un-marks rounds
 }
 
 let audio;
@@ -365,11 +374,11 @@ function beep(freq = 880, dur = 0.15) {
     o.start(); o.stop(audio.currentTime + dur);
   } catch (e) {}
 }
-function roundAlert(done) {
-  const final = done === TARGET;
+function roundAlert(done, target, which) {
+  const final = done === target;
   beep(final ? 1320 : 1046, final ? 0.8 : 0.5);
   vibrate(final ? [400, 150, 400, 150, 400] : [400, 150, 400]);
-  if (final) toast('4 rounds done! Time for the buy-out 💪');
+  if (final) toast(which === 'extra' ? `${S.programs.p3.name}: ${target} rounds done!` : `${target} rounds done! Time for the buy-out 💪`);
 }
 
 let wakeLock = null;
@@ -387,52 +396,43 @@ const anyRunning = () => !!(S.active && (S.active.runSince || (S.active.xt && S.
 function syncAwake() { if (anyRunning()) keepAwake(); else releaseAwake(); }
 document.addEventListener('visibilitychange', keepAwake);
 
-let lastCountdown = null;
+const dotsHtml = (n, done) => Array.from({ length: n }, (_, i) =>
+  `<div class="dot ${i < done ? 'done' : i === done ? 'cur' : ''}"></div>`).join('');
+
+const countdown = {}; // last countdown second beeped, per timer
 function tick() {
   const a = S.active;
   if (!a) return;
-  const e = elapsed(a);
-  const done = Math.floor(e / roundMs());
-  const within = e % roundMs();
-  if (done > (a.lastDone || 0)) { a.lastDone = done; save(); roundAlert(done); }
-  const secLeft = Math.ceil((roundMs() - within) / 1000);
-  if (a.runSince && secLeft <= 3 && secLeft !== lastCountdown) { lastCountdown = secLeft; beep(660, 0.1); }
-  if (secLeft > 3) lastCountdown = null;
+  // alarms for both timers, whichever one is on screen
+  for (const [which, { t, len, target }] of Object.entries(timers(a))) {
+    const e = elapsed(t), done = Math.floor(e / len), left = Math.ceil((len - e % len) / 1000);
+    if (done > (t.lastDone || 0)) { t.lastDone = done; save(); roundAlert(done, target, which); }
+    if (t.runSince && left <= 3 && left !== countdown[which]) { countdown[which] = left; beep(660, 0.1); }
+    if (left > 3) countdown[which] = null;
+  }
 
   const time = $('#t-time');
   if (!time) return;
+  const { t, len, target } = cur(a);
+  const e = elapsed(t), within = e % len, done = roundsDone(t, len);
+  const started = t === a ? firstStart(a) : t.started;
   time.textContent = fmt(within);
   $('#t-total').textContent = fmt(totalTime(a));
-  time.classList.toggle('paused', !a.runSince);
+  time.classList.toggle('paused', !t.runSince);
   const bar = $('#t-bar'), C = 2 * Math.PI * 45;
   bar.style.strokeDasharray = C;
-  bar.style.strokeDashoffset = C * (1 - within / roundMs());
-  $('#t-dots').innerHTML = Array.from({ length: TARGET }, (_, i) =>
-    `<div class="dot ${i < done ? 'done' : i === done ? 'cur' : ''}"></div>`).join('');
-  $('#t-sub').textContent = a.runSince ? '' : firstStart(a) ? 'Paused' : 'Tap to start';
-  tickExtra(a);
+  bar.style.strokeDashoffset = C * (1 - within / len);
+  $('#t-dots').innerHTML = dotsHtml(target, done);
+  $('#t-sub').textContent = t.runSince ? '' : started ? 'Paused' : 'Tap to start';
+  $('#t-mark').classList.toggle('on', (t.marked || 0) > Math.floor(e / len));
+  const xd = $('#x-dots');
+  if (xd) {
+    const xr = extraRounds(a);
+    xd.innerHTML = dotsHtml(EXTRA_MAX, xr);
+    $('#x-status').textContent = `${xr} of ${EXTRA_MAX} rounds`;
+  }
 }
 setInterval(tick, 250);
-
-// small interval timer for the program 3 extra rounds: counts up to 2–6 min, beeps, starts over
-const extraMs = () => (S.extraMin || 3) * 60 * 1000;
-const xElapsed = x => x.acc + (x.runSince ? Date.now() - x.runSince : 0);
-function tickExtra(a) {
-  const x = a.xt;
-  if (!x) return;
-  const e = xElapsed(x), done = Math.floor(e / extraMs()), within = e % extraMs();
-  if (done > (x.lastDone || 0)) {
-    x.lastDone = done; save();
-    beep(880, 0.5);
-    vibrate([300, 120, 300]);
-  }
-  const t = $('#x-time');
-  if (!t) return;
-  t.textContent = fmt(within);
-  $('#x-sub').textContent = x.runSince ? `interval ${done + 1}` : e ? 'Paused' : 'Start';
-  $('#x-bar').style.width = `${within / extraMs() * 100}%`;
-  $('#x-clock').classList.toggle('run', !!x.runSince);
-}
 
 // ---------- progression ----------
 function progress(p) {
@@ -489,9 +489,30 @@ function exList(p, pid, active) {
 function renderToday() {
   const a = ensureActive();
   const p = S.programs[a.program], p3 = S.programs.p3;
-  const xr = a.extra || 0;
+  const T = cur(a), inX = a.mode === 'extra', xr = extraRounds(a);
+  const mainCard = `
+    <section class="card" style="--pc:var(--${a.program})">
+      <div class="eyebrow">Today</div>
+      <h2 style="margin:2px 0 0">${esc(p.name)} <span class="tag">E${S.roundMin || 6}MOM × ${TARGET}</span></h2>
+      ${exList(p, a.program, a)}
+    </section>`;
+  const extraCard = a.program === 'p3' ? '' : `
+    <details class="card" id="x-card" style="--pc:var(--p3)"${inX || xOpen ? ' open' : ''}>
+      <summary class="row">
+        <div><div class="eyebrow">Extra</div><b>${esc(p3.name)}</b> <span class="chev">›</span></div>
+        <div class="dots" id="x-dots" aria-label="Extra rounds done">${dotsHtml(EXTRA_MAX, xr)}</div>
+      </summary>
+      <div class="chips" style="margin-top:12px">${[2, 3, 4, 5, 6].map(m =>
+        `<button class="chip${m === (S.extraMin || 3) ? ' on' : ''}" data-act="xMin" data-m="${m}" aria-label="${m} minute rounds">${m}m</button>`).join('')}</div>
+      <button class="btn primary block" data-act="mode" data-m="${inX ? 'main' : 'extra'}">${inX
+        ? `Back to ${esc(p.name)} timer` : a.xt && a.xt.started ? `Continue ${esc(p3.name)}` : `Start ${esc(p3.name)}`}</button>
+      <details${inX ? ' open' : ''}>
+        <summary class="xsum"><span id="x-status">${xr} of ${EXTRA_MAX} rounds</span> · exercises <span class="chev">›</span></summary>
+        ${exList(p3, 'p3')}
+      </details>
+    </details>`;
   $('#view-today').innerHTML = `
-    <section class="card tcard" style="--pc:var(--${a.program})">
+    <section class="card tcard" style="--pc:var(--${T.pc})">
       <div class="ttotal" aria-label="Total workout time"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg><span id="t-total">0:00</span></div>
       <button class="ibr fbtn" data-act="focus" aria-label="${focus ? 'Leave focus mode' : 'Focus mode'}"><svg viewBox="0 0 24 24">${focus
         ? '<path d="M9 4v5H4M15 4v5h5M15 20v-5h5M9 20v-5H4"/>'
@@ -500,12 +521,14 @@ function renderToday() {
         <div class="ring" data-act="pause" role="button" aria-label="Tap to start, pause or resume">
           <svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="45"/><circle id="t-bar" class="bar" cx="50" cy="50" r="45"/></svg>
           <div class="ring-text">
+            ${T.label ? `<div class="tlabel">${esc(T.label)}</div>` : ''}
             <div id="t-time">0:00</div>
             <div id="t-sub"></div>
             <div id="t-dots" class="dots"></div>
           </div>
         </div>
         <div class="tools left">
+          <button class="ibr mark" id="t-mark" data-act="markRound" aria-label="Round done (the clock keeps running)"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
           <button class="ibr" data-act="nudge" data-d="15000" aria-label="Add 15 seconds">+15</button>
           <button class="ibr" data-act="nudge" data-d="-15000" aria-label="Remove 15 seconds">−15</button>
         </div>
@@ -516,30 +539,7 @@ function renderToday() {
         </div>
       </div>
     </section>
-    <section class="card" style="--pc:var(--${a.program})">
-      <div class="eyebrow">Today</div>
-      <h2 style="margin:2px 0 0">${esc(p.name)} <span class="tag">E${S.roundMin || 6}MOM × ${TARGET}</span></h2>
-      ${exList(p, a.program, a)}
-    </section>
-    ${a.program !== 'p3' ? `
-    <section class="card" style="--pc:var(--p3)">
-      <div class="row">
-        <div><div class="eyebrow">Extra</div><b>${esc(p3.name)}</b></div>
-        <div class="xr">${Array.from({ length: EXTRA_MAX }, (_, i) =>
-          `<button class="xdot${xr > i ? ' on' : ''}" data-act="extra" data-n="${i + 1}" aria-label="${i + 1} extra round${i ? 's' : ''}"></button>`).join('')}</div>
-      </div>
-      <div class="xt">
-        <div class="chips">${[2, 3, 4, 5, 6].map(m =>
-          `<button class="chip${m === (S.extraMin || 3) ? ' on' : ''}" data-act="xMin" data-m="${m}" aria-label="${m} minute intervals">${m}m</button>`).join('')}</div>
-        <button class="xclock" id="x-clock" data-act="xToggle" aria-label="Start or pause the extra timer">
-          <span id="x-time">0:00</span><small id="x-sub">Start</small></button>
-      </div>
-      <div class="xbar"><i id="x-bar"></i></div>
-      <details${xr ? ' open' : ''}>
-        <summary class="xsum">${xr ? `${xr} of ${EXTRA_MAX} rounds` : 'Tap a dot for each round you do'} · exercises <span class="chev">›</span></summary>
-        ${exList(p3, 'p3')}
-      </details>
-    </section>` : ''}
+    ${inX ? extraCard + mainCard : mainCard + extraCard}
     <button class="btn primary big" style="--pc:var(--good)" data-act="finish">Finish & save</button>
     <button class="btn danger block" data-act="cancel">Reset workout</button>`;
   tick();
@@ -761,11 +761,15 @@ function programCard(pid) {
       <button class="ib del" data-act="removeEx" ${at} aria-label="Remove">✕</button>
     </div>`;
   };
-  const rows = p.exercises.map((e, i) => `
+  // reps/kg steppers only appear after tapping Edit; otherwise just the values
+  const rows = p.exercises.map((e, i) => ed ? `
     <div class="erow">
-      ${ed ? nameInput('exercises', i, e.name)
-        : `<button class="ename" data-act="setNext" data-p="${pid}" data-i="${i}">${esc(e.name)}${i === n ? '<span class="up">↑ +1 next</span>' : ''}</button>`}
+      ${nameInput('exercises', i, e.name)}
       <div class="steppers">${stepper(pid, 'exercises', i, 'reps', e.reps, 'reps', 1)}${stepper(pid, 'exercises', i, 'kg', e.kg, 'kg', 2.5)}</div>
+    </div>` : `
+    <div class="erow row">
+      <button class="ename" style="padding:0" data-act="setNext" data-p="${pid}" data-i="${i}">${esc(e.name)}${i === n ? '<span class="up">↑ +1 next</span>' : ''}</button>
+      <span class="muted" style="white-space:nowrap">${e.reps} reps${e.kg ? ` · ${+e.kg} kg` : ''}</span>
     </div>`).join('');
   const bos = p.buyout.map((b, i) => {
     const results = sessions.map(s => (s.buyout || []).find(x => same(x, b))).filter(x => x && x.reps != null);
@@ -773,8 +777,8 @@ function programCard(pid) {
     const last = results.length ? results[results.length - 1].reps : null;
     return `
     <div class="erow">
-      ${ed ? nameInput('buyout', i, b.name) : `<div class="ename">${esc(b.name)}</div>`}
-      <div class="steppers">${stepper(pid, 'buyout', i, 'kg', b.kg, 'kg', 2.5)}</div>
+      ${ed ? `${nameInput('buyout', i, b.name)}<div class="steppers">${stepper(pid, 'buyout', i, 'kg', b.kg, 'kg', 2.5)}</div>`
+        : `<div class="row"><span class="ename" style="padding:0">${esc(b.name)}</span><span class="muted">${b.kg ? `${+b.kg} kg` : ''}</span></div>`}
       <div class="meta">${best == null ? 'No results yet' : `Last: ${last} reps · Best: ${best} reps`}</div>
     </div>`;
   }).join('');
@@ -783,7 +787,8 @@ function programCard(pid) {
       <details>
         <summary class="row"><h2 style="margin:0">${esc(p.name)}${pid === 'p3' ? ' <span class="tag">extra</span>' : ''} <span class="chev">›</span></h2><span class="muted"><small>done ${sessions.length}×</small></span></summary>
         <div class="row">
-          <div class="meta">${ed ? 'Rename, reorder, add or remove, then tap Done.' : 'Tap an exercise name to choose which one gets +1 rep next.'}</div>
+          <div class="meta">${ed ? 'Change reps and kg, rename, reorder, add or remove, then tap Done.'
+            : 'Tap an exercise to choose which one gets +1 rep next. Tap Edit to change reps, kg or names.'}</div>
           <button class="btn" style="padding:8px 14px;flex:none" data-act="editNames" data-p="${pid}">${ed ? 'Done' : 'Edit'}</button>
         </div>
         ${rows}
@@ -853,37 +858,40 @@ const actions = {
     try { localStorage.setItem('wt-tab', tab); } catch (e) {}
     render(); window.scrollTo(0, 0);
   },
+  // the timer buttons act on whichever timer is on screen (main program or program 3)
   pause() {
-    const a = S.active;
-    if (a.runSince) { a.acc += Date.now() - a.runSince; a.runSince = null; syncAwake(); }
-    else { ensureAudio(); a.runSince = Date.now(); a.firstStart = a.firstStart || a.runSince; keepAwake(); }
+    const a = S.active, { t } = cur(a);
+    if (t.runSince) { t.acc += Date.now() - t.runSince; t.runSince = null; syncAwake(); }
+    else { ensureAudio(); t.runSince = Date.now(); t.started = true; a.firstStart = a.firstStart || t.runSince; keepAwake(); }
     save(); tick();
   },
   // "+15" counts the clock forward (less time left in the round), "−15" gives 15 s back
-  nudge(d) { setElapsed(S.active, elapsed(S.active) + +d.d); save(); tick(); },
-  roundPlus() { setElapsed(S.active, elapsed(S.active) + roundMs()); save(); tick(); },
-  roundMinus() { setElapsed(S.active, elapsed(S.active) - roundMs()); save(); tick(); },
-  restartRound() { const e = elapsed(S.active); setElapsed(S.active, e - e % roundMs()); save(); tick(); },
-  xToggle() {
-    const x = S.active.xt = S.active.xt || { acc: 0, runSince: null, lastDone: 0 };
-    if (x.runSince) { x.acc += Date.now() - x.runSince; x.runSince = null; }
-    else { ensureAudio(); x.runSince = Date.now(); }
-    save(); syncAwake(); tick();
+  nudge(d) { const { t, len } = cur(S.active); setElapsed(t, elapsed(t) + +d.d, len); save(); tick(); },
+  roundPlus() { const { t, len } = cur(S.active); setElapsed(t, elapsed(t) + len, len); save(); tick(); },
+  roundMinus() { const { t, len } = cur(S.active); setElapsed(t, elapsed(t) - len, len); save(); tick(); },
+  restartRound() { const { t, len } = cur(S.active); const e = elapsed(t); setElapsed(t, e - e % len, len); save(); tick(); },
+  // ✓ marks the current round as done early; the clock keeps running to the limit. Tap again to undo.
+  markRound() {
+    const { t, len } = cur(S.active), onClock = Math.floor(elapsed(t) / len);
+    t.marked = (t.marked || 0) > onClock ? onClock : onClock + 1;
+    save(); tick();
+  },
+  // switch the big timer between the main program and program 3 (the main clock stops when you move on)
+  mode(d) {
+    const a = S.active;
+    if (d.m === 'extra' && a.runSince) { a.acc += Date.now() - a.runSince; a.runSince = null; }
+    a.mode = d.m;
+    save(); syncAwake(); render(); window.scrollTo(0, 0);
   },
   xMin(d) {
     S.extraMin = +d.m;
     const x = S.active && S.active.xt;
-    if (x) x.lastDone = Math.floor(xElapsed(x) / extraMs()); // no false beep when switching
-    save(); render();
-  },
-  extra(d) {
-    const a = S.active, n = +d.n;
-    a.extra = (a.extra || 0) === n ? n - 1 : n; // tapping the last filled dot takes it away again
+    if (x) setElapsed(x, elapsed(x), extraMs()); // re-sync round count: no false alarm when switching
     save(); render();
   },
   finish() {
     const a = S.active, p = S.programs[a.program], p3 = S.programs.p3;
-    const e = elapsed(a), rounds = Math.floor(e / roundMs());
+    const rounds = roundsDone(a, roundMs()), xRounds = extraRounds(a);
     if (rounds < TARGET && !confirm(`Only ${rounds} of ${TARGET} rounds completed. Save anyway?`)) return;
     const session = {
       id: uid(), date: new Date(firstStart(a) || Date.now()).toISOString(), program: a.program, name: p.name,
@@ -896,8 +904,8 @@ const actions = {
         const v = parseInt(a.buyout[b.id], 10);
         return { id: b.id, name: b.name, kg: kgUsed(a, b), reps: isNaN(v) ? null : v };
       }),
-      extra: a.program !== 'p3' && a.extra ? {
-        rounds: a.extra,
+      extra: a.program !== 'p3' && xRounds ? {
+        rounds: xRounds,
         exercises: p3.exercises.map(x => ({ id: x.id, name: x.name, reps: x.reps, target: x.reps, kg: x.kg })),
       } : null,
     };
@@ -1058,6 +1066,8 @@ function chartLeave(ev) {
   const cv = $('#cv-' + svg.dataset.key);
   cv.textContent = cv.dataset.def;
 }
+// remember whether the program 3 card is folded out across re-renders ('toggle' doesn't bubble: capture it)
+document.addEventListener('toggle', ev => { if (ev.target.id === 'x-card') xOpen = ev.target.open; }, true);
 document.addEventListener('pointermove', chartPoint);
 document.addEventListener('pointerdown', chartPoint);
 document.addEventListener('pointerleave', chartLeave, true);
